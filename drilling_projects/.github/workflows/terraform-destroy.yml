@@ -1,0 +1,55 @@
+name: Terraform - Manual Destroy
+
+on: 
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to destroy (e.g., dev, prod)'
+        required: true
+        default: 'dev'
+        type: string
+
+env:
+    terraform_version: 1.5.0
+    aws_region: us-east-1
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  terraform-deploy:
+    name: Deploy Terraform Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::643327307192:role/githubroleuser
+        aws-region: ${{ env.aws_region }}
+        role-session-name: githubroleuser
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: => ${{ env.terraform_version }}
+    
+    - name: Terraform Init
+      run: terraform  init
+
+    - name: Terraform Format
+      run: terraform -chdir=envs/${{ inputs.environment }} fmt -check
+
+    - name: Terraform Validate
+      run: terraform -chdir=envs/${{ inputs.environment }} validate
+
+    - name: Terraform Plan
+      run: terraform -chdir=envs/${{ inputs.environment }} plan 
+
+    - name: Terraform Destroy
+      run: terraform -chdir=envs/${{ inputs.environment }} destroy -auto-approve    
