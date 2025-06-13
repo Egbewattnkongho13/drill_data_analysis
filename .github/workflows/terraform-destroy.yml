@@ -35,7 +35,7 @@ jobs:
         role-session-name: githubroleuser
 
     - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v3 
       with:
         terraform_version: => ${{ env.terraform_version }}
     
@@ -43,13 +43,13 @@ jobs:
       run: terraform  init
 
     - name: Terraform Format
-      run: terraform -chdir=envs/${{ inputs.environment }} fmt -check
+      run: terraform -chdir=infrastructure/envs/${{ inputs.environment }} fmt -check
 
     - name: Terraform Validate
-      run: terraform -chdir=envs/${{ inputs.environment }} validate
+      run: terraform -chdir=infrastructure/envs/${{ inputs.environment }} validate
 
     - name: Terraform Plan
-      run: terraform -chdir=envs/${{ inputs.environment }} plan 
+      run: terraform -chdir=infrastructure/envs/${{ inputs.environment }} plan 
 
     - name: Terraform Destroy
-      run: terraform -chdir=envs/${{ inputs.environment }} destroy -auto-approve    
+      run: terraform -chdir=infrastructure/envs/${{ inputs.environment }} destroy -auto-approve    
