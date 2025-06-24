@@ -1,10 +1,10 @@
 resource "aws_s3_bucket" "silver_bucket" {
-    bucket = "${var.datalake_name}_silver"
+  bucket = "${var.datalake_name}_silver"
 
-    tags = {
-        Layer        = "silver"
-        Project      = var.datalake_name
-    }
+  tags = {
+    Layer   = "silver"
+    Project = var.datalake_name
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "silver_bucket_public_access_block" {
