@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "bronze_bucket" {
-  bucket = "${var.datalake_name}_bronze"
+  bucket = "${var.datalake_name}-bronze"
 
   tags = {
     Layer   = "bronze"

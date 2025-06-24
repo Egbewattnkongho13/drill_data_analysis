@@ -1,10 +1,10 @@
 variable "datalake_name" {
   description = "The name of the project"
   type        = string
-  default     = "data_lake"
+  default     = "data-lake"
 
   validation {
-    condition     = length(var.datalake_name) > 0 && can(regex("^[a-zA-Z0-9_-]+$", var.datalake_name))
+    condition     = length(var.datalake_name) > 0 && can(regex("^[a-zA-Z0-9-]+$", var.datalake_name))
     error_message = "The datalake_name variable must not be empty and can only contain alphanumeric characters, underscores, and hyphens."
   }
 }
