@@ -5,7 +5,8 @@ provider "aws" {
   default_tags {
     tags = {
       Environment  = "dev"
-      Owner        = "OyeData"}
+      Owner        = "OyeData"
+      project_name = "drill_data_analysis"}
   }
 }
 
