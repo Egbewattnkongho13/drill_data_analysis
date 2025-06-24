@@ -12,9 +12,10 @@ resource "aws_iam_role" "bronze_ingestion_role" {
   
 }
 
-resource "aws_iam_role_policy_attachment" "bronze_policy_to_ingestion_role_attachment" {
-    role       = aws_iam_role.bronze_ingestion_role.arn
-    policy_arn = data.aws_iam_policy_document.bronze_write_policy.json
+resource "aws_iam_role_policy" "bronze_write_policy_to_ingestion_role" {
+    name =  "${var.datalake_name}_bronze_write_policy_to_ingestion_role"
+    role       = aws_iam_role.bronze_ingestion_role.id 
+    policy = data.aws_iam_policy_document.bronze_write_policy.json
    
 }
 
@@ -33,14 +34,16 @@ resource "aws_iam_role" "silver_tansform_role" {
 }
 
 
-resource "aws_iam_role_policy_attachment" "silver_write_policy_to_transform_role_attachment" {
-    role       = aws_iam_role.silver_tansform_role.arn
-    policy_arn = data.aws_iam_policy_document.silver_write_policy.json  
+resource "aws_iam_role_policy" "silver_write_policy" {
+    name =  "${var.datalake_name}_silver_write_policy"
+    role       = aws_iam_role.silver_tansform_role.id
+    policy = data.aws_iam_policy_document.silver_write_policy.json  
 }
 
-resource "aws_iam_role_policy_attachment" "bronze_read_to_silver_policy_to_transform_role_attachment" {
-    role       = aws_iam_role.silver_tansform_role.arn
-    policy_arn = data.aws_iam_policy_document.bronze_read_to_silver_policy.json
+resource "aws_iam_role_policy" "bronze_read_to_silver_policy" {
+    name =  "${var.datalake_name}_bronze_read_to_silver_policy"
+    role       = aws_iam_role.silver_tansform_role.id
+    policy = data.aws_iam_policy_document.bronze_read_to_silver_policy.json
 }
 
 # creates IAM roles for the gold layer of the data lake
@@ -56,13 +59,15 @@ resource "aws_iam_role" "gold_transform_role" {
     } 
 }
 
-resource "aws_iam_role_policy_attachment" "gold_write_policy_to_transform_role_attachment" {
+resource "aws_iam_role_policy" "gold_write_policy" {
+  name = "${var.datalake_name}_gold_write_policy"
   role = aws_iam_role.gold_transform_role.arn
-  policy_arn = data.aws_iam_policy_document.gold_write_policy.json 
+  policy = data.aws_iam_policy_document.gold_write_policy.json 
 }
 
-resource "aws_iam_role_policy_attachment" "silver_read_to_gold_policy_to_transform_role_attachment" {
-  role = aws_iam_role.gold_transform_role.arn
-  policy_arn = data.aws_iam_policy_document.silver_read_to_gold_policy.json 
+resource "aws_iam_role_policy" "silver_read_to_gold_policy" {
+  name =  "${var.datalake_name}_silver_read_to_gold_policy"
+  role = aws_iam_role.gold_transform_role.id
+  policy = data.aws_iam_policy_document.silver_read_to_gold_policy.json 
 }
 

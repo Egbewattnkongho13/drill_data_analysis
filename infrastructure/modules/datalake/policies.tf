@@ -89,7 +89,7 @@ data "aws_iam_policy_document" "gold_write_policy" {
 
 data "aws_iam_policy_document" "silver_read_to_gold_policy" {
     statement {
-        effect = "Alloow"
+        effect = "Allow"
         actions = [
             "s3:GetObject",
             "s3:ListBucket"
