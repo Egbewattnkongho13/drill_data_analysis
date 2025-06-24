@@ -4,12 +4,11 @@ resource "aws_iam_role" "bronze_ingestion_role" {
 
   assume_role_policy = data.aws_iam_policy_document.bronze_assume_role_policy.json
 
-  tags = merge(var.global_tags, 
-    {
+  tags =  {
       Layer   = "bronze"
       Project = var.project_name
     }
-  )
+
   
 }
 
@@ -26,12 +25,11 @@ resource "aws_iam_role" "silver_tansform_role" {
 
   assume_role_policy = data.aws_iam_policy_document.silver_assume_role_policy.json 
 
-    tags = merge(var.global_tags, 
-    {
+    tags =  {
       Layer   = "silver"
       Project = var.project_name
     }
-  )  
+  
 }
 
 
@@ -52,12 +50,10 @@ resource "aws_iam_role" "gold_transform_role" {
 
   assume_role_policy = data.aws_iam_policy_document.gold_assume_role_policy.json
 
-  tags = merge(var.global_tags, 
-    {
+  tags = {
       Layer   = "gold"
       Project = var.project_name
-    }
-  )  
+    } 
 }
 
 resource "aws_iam_role_policy_attachment" "gold_write_policy_to_transform_role_attachment" {

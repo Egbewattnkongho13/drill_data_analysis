@@ -5,12 +5,10 @@ resource "random_id" "s3_bronze_bucket_id" {
 resource "aws_s3_bucket" "bronze_bucket" {
     bucket = "${var.project_name}_bronze_${random_id.s3_bronze_bucket_id.hex}"
 
-    tags = merge(var.global_tags, 
-     {
+    tags = {
         Layer        = "bronze"
         Project      = var.project_name
     }
-  )
 }
 
 
