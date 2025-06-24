@@ -11,7 +11,7 @@ resource "aws_s3_bucket" "gold_bucket" {
     }
 }
 
-resource "aws_s3_public_access_block" "gold_bucket_public_access_block" {
+resource "aws_s3_bucket_public_access_block" "gold_bucket_public_access_block" {
  bucket = aws_s3_bucket.gold_bucket.id
 
   block_public_acls       = true
