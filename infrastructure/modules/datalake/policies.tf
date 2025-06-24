@@ -8,8 +8,8 @@ data "aws_iam_policy_document" "bronze_write_policy" {
         "s3:DeleteObject"
       ]
         resources = [
-            "arn:aws:s3:::${var.project_name}-bronze",
-            "arn:aws:s3:::${var.project_name}-bronze/drill_data/*"
+            "arn:aws:s3:::${var.datalake_name}-bronze",
+            "arn:aws:s3:::${var.datalake_name}-bronze/drill_data/*"
         ]
     }
 }
@@ -19,7 +19,7 @@ data "aws_iam_policy_document" "bronze_assume_role_policy" {
         effect = "Allow"
         principals {
             type = "AWS"
-            identifiers        = ["arn:aws:lambda:${var.region}:${var.account_id}:function:${var.ingestions_lambda_name}"]
+            identifiers        = ["arn:aws:lambda:${var.region}:${var.account_id}:function:${var.ingestion_lambda_name}"]
         }
         actions = ["sts:AssumeRole"]
     }
@@ -37,8 +37,8 @@ data "aws_iam_policy_document" "silver_write_policy" {
             "s3:DeleteObject"
         ]
         resources = [ 
-            "arn:aws:s3:::${var.project_name}-silver",
-            "arn:aws:s3:::${var.project_name}-silver/drill_data/*"
+            "arn:aws:s3:::${var.datalake_name}-silver",
+            "arn:aws:s3:::${var.datalake_name}-silver/drill_data/*"
          ]
     }
 }
@@ -51,8 +51,8 @@ data "aws_iam_policy_document" "bronze_read_to_silver_policy" {
         "s3:ListBucket"
       ]
         resources = [
-            "arn:aws:s3:::${var.project_name}-bronze",
-            "arn:aws:s3:::${var.project_name}-bronze/drill_data/*"
+            "arn:aws:s3:::${var.datalake_name}-bronze",
+            "arn:aws:s3:::${var.datalake_name}-bronze/drill_data/*"
         ]
     }
 }
@@ -81,8 +81,8 @@ data "aws_iam_policy_document" "gold_write_policy" {
         "s3:DeleteObject"
       ]
         resources = [
-            "arn:aws:s3:::${var.project_name}-gold",
-            "arn:aws:s3:::${var.project_name}-gold/drill_data/*"
+            "arn:aws:s3:::${var.datalake_name}-gold",
+            "arn:aws:s3:::${var.datalake_name}-gold/drill_data/*"
       ]
     }
 }
@@ -95,8 +95,8 @@ data "aws_iam_policy_document" "silver_read_to_gold_policy" {
             "s3:ListBucket"
         ]
             resources = [
-                "arn:aws:s3:::${var.project_name}-silver",
-                "arn:aws:s3:::${var.project_name}-silver/drill_data/*"
+                "arn:aws:s3:::${var.datalake_name}-silver",
+                "arn:aws:s3:::${var.datalake_name}-silver/drill_data/*"
             ]
     }
 }
@@ -107,7 +107,7 @@ data "aws_iam_policy_document" "gold_assume_role_policy" {
       actions = ["sts:AssumeRole"]
       principals {
         type = "AWS"
-        identifiers = ["arn:aws:lambda:${var.region}:${var.account_id}:function:${var.IDE_gold_transform_lambda_name}"]
+        identifiers = ["arn:aws:lambda:${var.region}:${var.account_id}:function:${var.ide_gold_tranform_lambda_name}"]
       }
     }
 }

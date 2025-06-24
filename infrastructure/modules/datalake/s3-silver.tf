@@ -3,11 +3,11 @@ resource "random_id" "s3_silver_bucket_id" {
 }
 
 resource "aws_s3_bucket" "silver_bucket" {
-    bucket = "${var.project_name}_silver_${random_id.s3_silver_bucket_id.hex}"
+    bucket = "${var.datalake_name}_silver_${random_id.s3_silver_bucket_id.hex}"
 
     tags = {
         Layer        = "silver"
-        Project      = var.project_name
+        Project      = var.datalake_name
     }
 }
 
