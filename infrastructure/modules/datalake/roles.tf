@@ -6,14 +6,13 @@ resource "aws_iam_role" "bronze_ingestion_role" {
 
   tags =  {
       Layer   = "bronze"
-      Project = var.datalake_name
     }
 
   
 }
 
-resource "aws_iam_role_policy" "bronze_write_policy_to_ingestion_role" {
-    name =  "${var.datalake_name}_bronze_write_policy_to_ingestion_role"
+resource "aws_iam_role_policy" "bronze_write_policy" {
+    name =  "${var.datalake_name}_bronze_write_policy"
     role       = aws_iam_role.bronze_ingestion_role.id 
     policy = data.aws_iam_policy_document.bronze_write_policy.json
    
@@ -28,7 +27,6 @@ resource "aws_iam_role" "silver_tansform_role" {
 
     tags =  {
       Layer   = "silver"
-      Project = var.datalake_name
     }
   
 }
@@ -40,10 +38,10 @@ resource "aws_iam_role_policy" "silver_write_policy" {
     policy = data.aws_iam_policy_document.silver_write_policy.json  
 }
 
-resource "aws_iam_role_policy" "bronze_read_to_silver_policy" {
-    name =  "${var.datalake_name}_bronze_read_to_silver_policy"
+resource "aws_iam_role_policy" "bronze_read_policy" {
+    name =  "${var.datalake_name}_bronze_read_policy"
     role       = aws_iam_role.silver_tansform_role.id
-    policy = data.aws_iam_policy_document.bronze_read_to_silver_policy.json
+    policy = data.aws_iam_policy_document.bronze_read_policy.json
 }
 
 # creates IAM roles for the gold layer of the data lake
@@ -55,7 +53,6 @@ resource "aws_iam_role" "gold_transform_role" {
 
   tags = {
       Layer   = "gold"
-      Project = var.datalake_name
     } 
 }
 
@@ -65,9 +62,9 @@ resource "aws_iam_role_policy" "gold_write_policy" {
   policy = data.aws_iam_policy_document.gold_write_policy.json 
 }
 
-resource "aws_iam_role_policy" "silver_read_to_gold_policy" {
-  name =  "${var.datalake_name}_silver_read_to_gold_policy"
+resource "aws_iam_role_policy" "silver_read_policy" {
+  name =  "${var.datalake_name}_silver_read_policy"
   role = aws_iam_role.gold_transform_role.id
-  policy = data.aws_iam_policy_document.silver_read_to_gold_policy.json 
+  policy = data.aws_iam_policy_document.silver_read_policy.json 
 }
 

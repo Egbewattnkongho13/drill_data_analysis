@@ -43,7 +43,7 @@ data "aws_iam_policy_document" "silver_write_policy" {
     }
 }
 
-data "aws_iam_policy_document" "bronze_read_to_silver_policy" {
+data "aws_iam_policy_document" "bronze_read_policy" {
     statement {
       effect = "Allow"
       actions = [
@@ -87,7 +87,7 @@ data "aws_iam_policy_document" "gold_write_policy" {
     }
 }
 
-data "aws_iam_policy_document" "silver_read_to_gold_policy" {
+data "aws_iam_policy_document" "silver_read_policy" {
     statement {
         effect = "Allow"
         actions = [

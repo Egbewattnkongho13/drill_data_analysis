@@ -6,7 +6,8 @@ provider "aws" {
     tags = {
       Environment  = "dev"
       Owner        = "OyeData"
-      project_name = "drill_data_analysis"}
+      project_name = "drill_data_analysis"
+      }
   }
 }
 

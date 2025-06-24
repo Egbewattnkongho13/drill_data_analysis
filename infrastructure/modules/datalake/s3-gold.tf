@@ -1,9 +1,5 @@
-resource "random_id" "s3_gold_bucket_id" {
-  byte_length = 4
-}
-
 resource "aws_s3_bucket" "gold_bucket" {
-    bucket = "${var.datalake_name}_gold_${random_id.s3_gold_bucket_id.hex}"
+    bucket = "${var.datalake_name}_gold"
 
     tags = {
       Layer       = "gold"
