@@ -1,6 +1,6 @@
 
 def serve(event=None, context=None):
     """
-    Serve the ingestion function.
+    Serve the silver-transform function.
     """
     pass

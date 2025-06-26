@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "gold-transform"
 version = "0.1.0"
-description = ""
+description = "A modular AWS lambda function for gold-level data transformation, packaged with Docker and managed via Terraform. Enables scalable, event-driven processing and enrichment of refined data in a cloud-native architecture"
 authors = ["Egbewatt Nkongho <egbewattnkonghob@gmail.com>"]
 readme = "README.md"
-packages = [{include = "transformation"}]
+packages = [{include = "transform"}]
 
 [tool.poetry.scripts]
-serve = "transformation.serve:serve"
+serve = "transform.serve:serve"
 
 [tool.poetry.dependencies]
 python = "^3.12"

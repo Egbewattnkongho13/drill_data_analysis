@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "ingestion"
 version = "0.1.0"
-description = ""
+description = "A modular AWS Lambda ingestion and transformation pipeline, packaged with Docker and managed via Terraform. Handles event-driven data ingestion, processing, and storage in a scalable cloud-native architecture."
 authors = ["Egbewatt Nkongho <egbewattnkonghob@gmail.com>"]
 readme = "README.md"
 packages = [{ include = "ingest" }]

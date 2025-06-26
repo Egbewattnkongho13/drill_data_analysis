@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "silver-transform"
 version = "0.1.0"
-description = ""
+description = "A modular AWS Lambda function for silver-level data transformation, containerized with Docker and managed via Terraform. Supports scalable, event-driven processing and cleaninng of ingested data in a cloud-native pipeline."
 authors = ["Egbewatt Nkongho <egbewattnkonghob@gmail.com>"]
 readme = "README.md"
-packages = [{include = "transform"}]
+packages = [{include = "clean"}]
 
 [tool.poetry.scripts]
-serve = "transform.serve:serve"
+serve = "clean.serve:serve"
 
 [tool.poetry.dependencies]
 python = "^3.12"

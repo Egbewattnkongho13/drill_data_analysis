@@ -9,11 +9,11 @@ RUN poetry export --output=requirements.txt --without-hashes --only=main
 
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
-# Install the specified packages
+
 RUN pip install -r requirements.txt
 
-# Copy function code
-COPY ./transform ${LAMBDA_TASK_ROOT}
 
-# Set the CMD to your handler (0could also be done as a parameter override outside of the Dockerfile)
-CMD [ "transform.lambda_handler" ]
+COPY ./clean ${LAMBDA_TASK_ROOT}
+
+
+CMD [ "clean.lambda_handler" ]
