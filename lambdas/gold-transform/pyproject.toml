@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "gold-transform"
+version = "0.1.0"
+description = ""
+authors = ["Egbewatt Nkongho <egbewattnkonghob@gmail.com>"]
+readme = "README.md"
+packages = [{include = "transformation"}]
+
+[tool.poetry.scripts]
+serve = "transformation.serve:serve"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
