@@ -1,0 +1,60 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+   
+env:
+    aws_region: us-east-1   
+
+jobs:
+    build-and-push:
+        name: Build and Push Docker Images
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v3
+              with:
+                role-to-assume: arn:aws:iam::643327307192:role/githubroleuser
+                aws-region: ${{ env.aws_region }}
+                role-session-name: githubroleuser
+         
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v2
+              with:
+                mask-password: false
+            
+            - name: Build and Push Docker Image for Ingestion Lambda
+              run: |
+                docker build -t ingestion-lambda -f lambdas/ingestion/Dockerfile .
+                docker tag ingestion-lambda:latest ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda:latest 
+                docker push ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda:latest
+              # avoid using latest tags. find out best practices for tagging images
+            
+            - name: Build and Push Docker Image for Silver-Transformation Lambda
+              run: |
+                docker build -t silver-transform-lambda -f lambdas/transform_silver/Dockerfile .
+                docker tag silver-transform-lambda:latest ${{ steps.login-ecr.outputs.registry }}/silver-transform-lambda:latest
+                docker push ${{ steps.login-ecr.outputs.registry }}/silver-transform-lambda:latest
+            
+            - name: Build and Push Docker Image for Gold-Transformation Lambda
+              run: |
+                docker build -t gold-transform-lambda -f lambdas/transform_gold/Dockerfile .
+                docker tag gold-transform-lambda:latest ${{ steps.login-ecr.outputs.registry }}/gold-transform-lambda:latest
+                docker push ${{ steps.login-ecr.outputs.registry}}/gold-transform-lambda:latest 
+                
