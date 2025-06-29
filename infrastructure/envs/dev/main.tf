@@ -1,19 +1,22 @@
 
 
-module "ingestion_lambda" {
-  source = "../modules/LambdaECR"
-  name   = "lambda_a"
+
+module "gold_lambda_ecr" {
+  source = "../../modules/ecr"
+  repository_name = "gold-lambda-ecr"
+  image_tag_mutability = "MUTABLE"
+  scan_on_push = true
   
 }
-
-module "silver_transformation_lambda" {
-  source = "../modules/LambdaECR"
-  name   = "lambda_b"
-  
+module "silver_lambda_ecr" {
+  source = "../../modules/ecr"
+  repository_name = "silver-lambda-ecr"
+  image_tag_mutability = "MUTABLE"  
+  scan_on_push = true
 }
-
-module "gold_transformation_lambda" {
-  source = "../modules/LambdaECR"
-  name   = "lambda_c"
-  
+module "ingestion_lambda_ecr" {
+  source = "../../modules/ecr"
+  repository_name = "ingestion-lambda-ecr"
+  image_tag_mutability = "MUTABLE"  
+  scan_on_push = true
 }
