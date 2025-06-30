@@ -3,7 +3,7 @@ variable "repository_name" {
   type        = string
 
   validation {
-    condition     = length(var.name) > 0
+    condition     = length(var.repository_name) > 0
     error_message = "The name variable must not be empty."
   }
   
