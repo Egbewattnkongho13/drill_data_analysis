@@ -6,7 +6,7 @@ variable "repository_name" {
     condition     = length(var.repository_name) > 0
     error_message = "The name variable must not be empty."
   }
-  
+
 }
 
 variable "image_tag_mutability" {
@@ -18,7 +18,7 @@ variable "image_tag_mutability" {
     condition     = var.image_tag_mutability == "MUTABLE" || var.image_tag_mutability == "IMMUTABLE"
     error_message = "The image_tag_mutability must be either 'MUTABLE' or 'IMMUTABLE'."
   }
-  
+
 }
 
 variable "scan_on_push" {
@@ -30,5 +30,5 @@ variable "scan_on_push" {
     condition     = can(regex("^(true|false)$", tostring(var.scan_on_push)))
     error_message = "The scan_on_push must be a boolean value."
   }
-  
+
 }
