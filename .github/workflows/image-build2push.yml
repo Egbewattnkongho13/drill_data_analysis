@@ -41,20 +41,19 @@ jobs:
             
             - name: Build and Push Docker Image for Ingestion Lambda
               run: |
-                docker build -t ingestion-lambda -f lambdas/ingestion/Dockerfile .
-                docker tag ingestion-lambda:latest ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda:latest 
-                docker push ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda:latest
-              # avoid using latest tags. find out best practices for tagging images
+                docker build -t ingestion-lambda-ecr-ecr -f lambdas/ingestion/Dockerfile .
+                docker tag ingestion-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda-ecr:${{ github.sha }}
+                docker push ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda-ecr:${{ github.sha }}
             
             - name: Build and Push Docker Image for Silver-Transformation Lambda
               run: |
-                docker build -t silver-transform-lambda -f lambdas/transform_silver/Dockerfile .
-                docker tag silver-transform-lambda:latest ${{ steps.login-ecr.outputs.registry }}/silver-transform-lambda:latest
-                docker push ${{ steps.login-ecr.outputs.registry }}/silver-transform-lambda:latest
+                docker build -t silver-lambda-ecr -f lambdas/transform_silver/Dockerfile .
+                docker tag silver-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/silver-lambda-ecr:${{ github.sha }}
+                docker push ${{ steps.login-ecr.outputs.registry }}/silver-lambda-ecr:${{ github.sha }}
             
             - name: Build and Push Docker Image for Gold-Transformation Lambda
               run: |
-                docker build -t gold-transform-lambda -f lambdas/transform_gold/Dockerfile .
-                docker tag gold-transform-lambda:latest ${{ steps.login-ecr.outputs.registry }}/gold-transform-lambda:latest
-                docker push ${{ steps.login-ecr.outputs.registry}}/gold-transform-lambda:latest 
+                docker build -t gold-lambda-ecr -f lambdas/transform_gold/Dockerfile .
+                docker tag gold-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/gold-lambda-ecr:${{ github.sha }}
+                docker push ${{ steps.login-ecr.outputs.registry}}/gold-lambda-ecr:${{ github.sha }}
                 
