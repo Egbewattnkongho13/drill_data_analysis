@@ -5,11 +5,15 @@ RUN python -m pip install pip~=23.0 \
     python -m pip install poetry~=1.8.0 \
     --no-cache-dir --disable-pip-version-check --no-compile
 
+COPY pyproject.toml ${LAMBDA_TASK_ROOT}/pyproject.toml
+
+COPY poetry.lock ${LAMBDA_TASK_ROOT}/poetry.lock
+
 RUN poetry export --output=requirements.txt --without-hashes --only=main
 
-RUN pip install -r requirements.txt
+RUN rm -rf pyproject.toml poetry.lock
 
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
+RUN pip install -r requirements.txt
 
 COPY clean ${LAMBDA_TASK_ROOT}/clean
 
