@@ -7,13 +7,11 @@ RUN pythom -m pip install pip~=23.0 \
 
 RUN poetry export --output=requirements.txt --without-hashes --only=main
 
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
-
-
 RUN pip install -r requirements.txt
 
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
-COPY ./transform ${LAMBDA_TASK_ROOT}
+COPY transform ${LAMBDA_TASK_ROOT}/transform
 
 
 CMD [ "transform.lambda_handler" ]

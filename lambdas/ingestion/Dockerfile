@@ -7,13 +7,12 @@ RUN python -m pip install pip~=23.0 \
 
 RUN poetry export --output=requirements.txt --without-hashes --only=main
 
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
-
 
 RUN pip install -r requirements.txt
 
+COPY requirements.txt ${LAMBDA_TASK_ROOT} 
 
-COPY ./ingest ${LAMBDA_TASK_ROOT}
+COPY  ingest ${LAMBDA_TASK_ROOT}/ingest
 
 
 CMD [ "ingest.lambda_handler" ]
