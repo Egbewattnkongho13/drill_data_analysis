@@ -29,13 +29,11 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                  cd lambdas/ingestion
-                  poetry install --no-interaction 
+                  ./ci/scripts/execute-lambda-command.sh ingestion poetry install --no-interaction
 
             - name: Run Tests
               run: |
-                cd lambdas/ingestion
-                poetry run python -m  pytest tests/ 
+                ./ci/scripts/execute-lambda-command.sh ingestion poetry run python -m pytest tests/
 
     test-silver-transform-lambda:
         name: Test Silver Transformation Lambda
@@ -59,13 +57,11 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                cd lambdas/silver-transform
-                poetry install --no-interaction 
+                ./ci/scripts/execute-lambda-command.sh silver-transform poetry install --no-interaction
 
             - name: Run Tests
               run: |
-                cd lambdas/transform_silver
-                poetry run python -m pytest tests/
+                ./ci/scripts/execute-lambda-command.sh silver-transform poetry run python -m pytest tests/
 
     test-gold-transform-lambda:
         name: Test Gold Transformation Lambda
@@ -89,10 +85,9 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                cd lambdas/gold-transform
-                poetry install --no-interaction 
+                ./ci/scripts/execute-lambda-command.sh gold-transform poetry install --no-interaction 
 
             - name: Run Tests
               run: |
-                cd lambdas/transform_gold
-                poetry run python -m pytest tests/
+                ./ci/scripts/execute-lambda-command.sh gold-transform poetry run python -m pytest tests/
+                
