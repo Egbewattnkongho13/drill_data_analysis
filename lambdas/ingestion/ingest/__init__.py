@@ -1,7 +1,6 @@
 from .serve import serve
 
 
-
 def lambda_handler(event, context):
     """
     Lambda function handler for serving the ingestion service.
