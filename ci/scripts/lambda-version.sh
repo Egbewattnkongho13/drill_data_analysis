@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 # take lambda dir as arg
 lambda_dir="$1"
@@ -12,8 +13,8 @@ LAMBDA_ROOT_DIR="lambdas"
 LAMBDA_PATH="$LAMBDA_ROOT_DIR/$lambda_dir"
 
 # check presence of changelog & pyproject.toml
-if [ ! -f "$LAMBDA_PATH/CHANGELOG.md" ]; then
-    echo "Error: CHANGELOG.md not found in $LAMBDA_PATH"
+if [ ! -f "$LAMBDA_PATH/changelog.md" ]; then
+    echo "Error: changelog.md not found in $LAMBDA_PATH"
     exit 1
 fi
 
@@ -26,21 +27,21 @@ fi
 get_pyproject_version() {
     if git show main:"$LAMBDA_PATH/pyproject.toml" &> /dev/null; then
         # File exists in main, get version from diff
-        git diff main -- "$LAMBDA_PATH/pyproject.toml" | grep '^+version' | sed -E 's/.*= "(.*)"/\1/'
+        git diff main -- "$LAMBDA_PATH/pyproject.toml" | grep '^\+version' | sed -E 's/.*= "(.*)"/\1/'
     else
         # File is new, get version directly
-        grep 'version =' "$LAMBDA_PATH/pyproject.toml" | sed -E 's/.*= "(.*)"/\1/'
+        grep 'version = ' "$LAMBDA_PATH/pyproject.toml" | sed -E 's/.*= "(.*)"/\1/'
     fi
 }
 
-# Function to get version from CHANGELOG.md
+# Function to get version from changelog.md
 get_changelog_version() {
-    if git show main:"$LAMBDA_PATH/CHANGELOG.md" &> /dev/null; then
+    if git show main:"$LAMBDA_PATH/changelog.md" &> /dev/null; then
         # File exists in main, get version from diff
-        git diff main -- "$LAMBDA_PATH/CHANGELOG.md" | grep '^+## \[' | head -n 1 | sed -E 's/\+## \[(v*)(.*)\].*/\2/'
+        git diff main -- "$LAMBDA_PATH/changelog.md" | grep '^\+## \[' | head -n 1 | sed -E 's/\+## \[(v*)(.*)\].*/\2/'
     else
         # File is new, get version directly
-        grep '## \[' "$LAMBDA_PATH/CHANGELOG.md" | head -n 1 | sed -E 's/## \[(v*)(.*)\].*/\2/'
+        grep '## \[' "$LAMBDA_PATH/changelog.md" | head -n 1 | sed -E 's/## \[(v*)(.*)\].*/\2/'
     fi
 }
 
@@ -53,13 +54,13 @@ if [ -z "$pyproject_version" ]; then
 fi
 
 if [ -z "$changelog_version" ]; then
-    echo "Error: No version line found in CHANGELOG.md or no changes detected."
+    echo "Error: No version line found in changelog.md or no changes detected."
     exit 1
 fi
 
 if [ "$pyproject_version" != "$changelog_version" ]; then
-    echo "Error: Version mismatch between pyproject.toml ($pyproject_version) and CHANGELOG.md ($changelog_version)."
+    echo "Error: Version mismatch between pyproject.toml ($pyproject_version) and changelog.md ($changelog_version)."
     exit 1
 fi
 
-echo "Lambda version: $pyproject_version"
+echo "$pyproject_version"
