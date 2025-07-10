@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set -eu
 
 # take lambda dir as arg
 lambda_dir="$1"
