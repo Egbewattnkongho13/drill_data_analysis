@@ -45,8 +45,20 @@ jobs:
     - name: Terraform Validate
       run: terraform -chdir=infrastructure/envs/${{ env.environment }} validate
 
+    - name: Generate tfvars
+      id: generate_tfvars
+      run: |
+        gold_version=$(ci/scripts/lambda-version.sh gold-transform)
+        silver_version=$(ci/scripts/lambda-version.sh silver-transform)
+        ingestion_version=$(ci/scripts/lambda-version.sh ingestion)
+
+        sed -i "s/GOLD_VERSION/${gold_version}/g" \
+              "s/SILVER_VERSION/${silver_version}/g" \
+              "s/INGESTION_VERSION/${ingestion_version}/g" \
+              infrastructure/envs/${{ env.environment }}/variables.tfvars.template > infrastructure/envs/${{ env.environment }}/variables.tfvars
+
     - name: Terraform Plan
-      run: terraform -chdir=infrastructure/envs/${{ env.environment }} plan 
+      run: terraform -chdir=infrastructure/envs/${{ env.environment }} plan -var-file=variables.tfvars 
 
     - name: Terraform Apply
-      run: terraform -chdir=infrastructure/envs/${{ env.environment }} apply -auto-approve    
+      run: terraform -chdir=infrastructure/envs/${{ env.environment }} apply -var-file=variables.tfvars -auto-approve    
