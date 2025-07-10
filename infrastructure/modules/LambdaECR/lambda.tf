@@ -7,7 +7,7 @@ resource "aws_lambda_function" "lambbda_from_ecr" {
   tags = {
     Name = "LambdaFunctionFromECR"
   }
-  depends_on = [aws_iam_role_policy.ecr_pull_policy]
+  depends_on = [aws_iam_role_policy_attachment.ecr_pull_policy]
 }
 
 
