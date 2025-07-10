@@ -23,6 +23,7 @@ module "ingestion_lambda_ecr" {
 
 module "ingestion_lambada" {
   source             = "../../modules/LambdaECR"
+  name               = "ingestion-lambda-role"
   lambda_name        = "ingestion-lambda"
   ecr_repository_url = module.ingestion_lambda_ecr.repository_url
   ecr_repository_arn = module.ingestion_lambda_ecr.arn_of_ecr_repository
@@ -31,6 +32,7 @@ module "ingestion_lambada" {
 
 module "Silver_transform_lambada" {
   source             = "../../modules/LambdaECR"
+  name               = "silver-transform-lambda-role"
   lambda_name        = "silver-transform-lambda"
   ecr_repository_url = module.silver_lambda_ecr.repository_url
   ecr_repository_arn = module.silver_lambda_ecr.arn_of_ecr_repository
@@ -39,6 +41,7 @@ module "Silver_transform_lambada" {
 
 module "Gold_transform_lambada" {
   source             = "../../modules/LambdaECR"
+  name               = "gold-transform-lambda-role"
   lambda_name        = "gold-transform-lambda"
   ecr_repository_url = module.gold_lambda_ecr.repository_url
   ecr_repository_arn = module.gold_lambda_ecr.arn_of_ecr_repository
