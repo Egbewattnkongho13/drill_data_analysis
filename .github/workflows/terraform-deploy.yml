@@ -48,6 +48,7 @@ jobs:
     - name: Generate tfvars
       id: generate_tfvars
       run: |
+      chmod +x ./ci/scripts/lambda-version.sh
         gold_version=$(ci/scripts/lambda-version.sh gold-transform)
         silver_version=$(ci/scripts/lambda-version.sh silver-transform)
         ingestion_version=$(ci/scripts/lambda-version.sh ingestion)
