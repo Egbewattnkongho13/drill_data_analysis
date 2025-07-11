@@ -1,0 +1,93 @@
+name: CI Tests
+
+on:
+    pull_request:
+        branches:
+            - main
+
+
+jobs:
+    test-ingestion-lambda:
+        name: Test Ingestion Lambda
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.12'
+            
+            - name: Install Poetry
+              uses: snok/install-poetry@v1
+              with:
+                version: '1.8.0'
+                virtualenvs-create: false
+                virtualenvs-in-project: true
+
+            - name: Install Dependencies
+              run: |
+                  ./ci/scripts/execute-lambda-command.sh ingestion poetry install --no-interaction
+
+            - name: Run Tests
+              run: |
+                ./ci/scripts/execute-lambda-command.sh ingestion poetry run python -m pytest tests/
+
+    test-silver-transform-lambda:
+        name: Test Silver Transformation Lambda
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.12'
+            
+            - name: Install Poetry
+              uses: snok/install-poetry@v1
+              with:
+                version: '1.8.0'
+                virtualenvs-create: false
+                virtualenvs-in-project: true
+
+            - name: Install Dependencies
+              run: |
+                ./ci/scripts/execute-lambda-command.sh silver-transform poetry install --no-interaction
+
+            - name: Run Tests
+              run: |
+                ./ci/scripts/execute-lambda-command.sh silver-transform poetry run python -m pytest tests/
+
+    test-gold-transform-lambda:
+        name: Test Gold Transformation Lambda
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.12'
+            
+            - name: Innstall Poetry
+              uses: snok/install-poetry@v1
+              with:
+                version: '1.8.0'
+                virtualenvs-create: false
+                virtualenvs-in-project: true
+
+            - name: Install Dependencies
+              run: |
+                ./ci/scripts/execute-lambda-command.sh gold-transform poetry install --no-interaction 
+
+            - name: Run Tests
+              run: |
+                ./ci/scripts/execute-lambda-command.sh gold-transform poetry run python -m pytest tests/
+                

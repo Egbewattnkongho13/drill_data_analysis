@@ -1,0 +1,25 @@
+# check that each lambda has an updated valid version
+name: Lint Scrapper
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Lint
+        run: |
+          chmod +x ./ci/scripts/lint-all-lambdas.sh
+          ./ci/scripts/lint-all-lambdas.sh

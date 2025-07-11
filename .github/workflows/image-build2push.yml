@@ -1,0 +1,97 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+   
+env:
+    aws_region: us-east-1   
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::643327307192:role/githubroleuser
+          aws-region: ${{ env.aws_region }}
+          role-session-name: githubroleuser
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        
+      - name: Get Ingestion Lambda Version
+        id: get_ingestion_version
+        run: |
+          chmod +x ./ci/scripts/lambda-version.sh
+          LAMBDA_VERSION=$(./ci/scripts/lambda-version.sh ingestion)
+          echo "LAMBDA_VERSION=$LAMBDA_VERSION" >> $GITHUB_OUTPUT
+        
+      - name: Build and Push Docker Image for Ingestion Lambda
+        run: |
+          docker build -t ingestion-lambda-ecr -f lambdas/ingestion/Dockerfile lambdas/ingestion
+          docker tag ingestion-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda-ecr:${{ steps.get_ingestion_version.outputs.LAMBDA_VERSION }}
+        
+      - name: Push Docker Image for Ingestion Lambda
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda-ecr:${{ steps.get_ingestion_version.outputs.LAMBDA_VERSION }}
+
+
+      - name: Get Silver-Transformation Lambda Version
+        id: get_silver_transformation_version
+        run: |
+          chmod +x ./ci/scripts/lambda-version.sh
+          LAMBDA_VERSION=$(./ci/scripts/lambda-version.sh silver-transform)
+          echo "LAMBDA_VERSION=$LAMBDA_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Docker Image for Silver-Transformation Lambda
+        run: |
+          docker build -t silver-lambda-ecr -f lambdas/silver-transform/Dockerfile lambdas/silver-transform
+          docker tag silver-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/silver-lambda-ecr:${{ steps.get_silver_transformation_version.outputs.LAMBDA_VERSION }}
+        
+      - name: Push Docker Image for Silver-Transformation Lambda
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/silver-lambda-ecr:${{ steps.get_silver_transformation_version.outputs.LAMBDA_VERSION }}
+      
+
+      - name: Get Gold-Transformation Lambda Version
+        id: get_gold_transformation_version
+        run: |
+          chmod +x ./ci/scripts/lambda-version.sh
+          LAMBDA_VERSION=$(./ci/scripts/lambda-version.sh gold-transform)
+          echo "LAMBDA_VERSION=$LAMBDA_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Docker Image for Gold-Transformation Lambda
+        run: |
+          docker build -t gold-lambda-ecr -f lambdas/gold-transform/Dockerfile lambdas/gold-transform
+          docker tag gold-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/gold-lambda-ecr:${{ steps.get_gold_transformation_version.outputs.LAMBDA_VERSION }}
+
+      - name: Push Docker Image for Gold-Transformation Lambda
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry}}/gold-lambda-ecr:${{ steps.get_gold_transformation_version.outputs.LAMBDA_VERSION }}
+            
+          
+      - name: Build Summary
+        run: |
+          echo "## Lambda Build Versions" >> $GITHUB_STEP_SUMMARY
+          echo "Ingestion: ${{ steps.get_ingestion_version.outputs.LAMBDA_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "Silver Transformation: ${{ steps.get_silver_transformation_version.outputs.LAMBDA_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "Gold Transformation: ${{ steps.get_gold_transformation_version.outputs.LAMBDA_VERSION }}" >> $GITHUB_STEP_SUMMARY
