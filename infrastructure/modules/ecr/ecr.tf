@@ -14,3 +14,5 @@ resource "aws_ecr_repository" "ecr_repo" {
 
 }
 
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
