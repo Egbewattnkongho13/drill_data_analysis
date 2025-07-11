@@ -46,6 +46,7 @@ jobs:
         run: |
           docker build -t ingestion-lambda-ecr -f lambdas/ingestion/Dockerfile lambdas/ingestion
           docker tag ingestion-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda-ecr:${{ steps.get_ingestion_version.outputs.LAMBDA_VERSION }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda-ecr:${{ steps.get_ingestion_version.outputs.LAMBDA_VERSION }}
         
       - name: Push Docker Image for Ingestion Lambda
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -63,6 +64,7 @@ jobs:
         run: |
           docker build -t silver-lambda-ecr -f lambdas/silver-transform/Dockerfile lambdas/silver-transform
           docker tag silver-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/silver-lambda-ecr:${{ steps.get_silver_transformation_version.outputs.LAMBDA_VERSION }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/silver-lambda-ecr:${{ steps.get_silver_transformation_version.outputs.LAMBDA_VERSION }}
         
       - name: Push Docker Image for Silver-Transformation Lambda
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -80,6 +82,7 @@ jobs:
         run: |
           docker build -t gold-lambda-ecr -f lambdas/gold-transform/Dockerfile lambdas/gold-transform
           docker tag gold-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/gold-lambda-ecr:${{ steps.get_gold_transformation_version.outputs.LAMBDA_VERSION }}
+          docker push ${{ steps.login-ecr.outputs.registry}}/gold-lambda-ecr:${{ steps.get_gold_transformation_version.outputs.LAMBDA_VERSION }}
 
       - name: Push Docker Image for Gold-Transformation Lambda
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
