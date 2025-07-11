@@ -6,11 +6,11 @@ resource "aws_ecr_repository" "ecr_repo" {
     scan_on_push = var.scan_on_push
   }
 
-
-
   tags = {
     Name = "ECRModuleRepo"
   }
-
 }
+
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
 
