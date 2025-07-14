@@ -1,12 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-lambda_dir="$1"
-
-if [ -z "$lambda_dir" ]; then
-    echo "Usage: $0 <lambda_dir>" >&2
+if [ $# -ne 1 ]; then
+    echo "Usage: 
+    $0 <lambda_dir>" >&2
     exit 1
 fi
+
+lambda_dir="$1"
 
 LAMBDA_ROOT_DIR="lambdas"
 LAMBDA_PATH="$LAMBDA_ROOT_DIR/$lambda_dir"
