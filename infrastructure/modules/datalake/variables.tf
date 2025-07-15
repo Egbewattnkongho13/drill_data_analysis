@@ -10,39 +10,19 @@ variable "datalake_name" {
 }
 
 
-variable "ingestion_lambda_name" {
-  description = "Name of the Lambda function for ingestions"
+variable "ingestion_lambda_arn" {
+  description = "ARN of the Lambda function for ingestions"
   type        = string
-  default     = "ingestions-lambda"
-
-  validation {
-    condition     = length(var.ingestion_lambda_name) > 0 && can(regex("^[a-zA-Z0-9-]+$", var.ingestion_lambda_name))
-    error_message = "The ingestion_lambda_name variable must not be empty and can only contain alphanumeric characters, and hyphens."
-  }
 }
 
-variable "silver_transform_lambda_name" {
-  description = "Name of the Lambda function for silver transformations"
+variable "silver_transform_lambda_arn" {
+  description = "ARN of the Lambda function for silver transformations"
   type        = string
-  default     = "silver-transform-lambda"
-
-  validation {
-    condition     = length(var.silver_transform_lambda_name) > 0 && can(regex("^[a-zA-Z0-9-]+$", var.silver_transform_lambda_name))
-    error_message = "The silver_transform_lambda_name variable must not be empty  and can only contain alphanumeric characters, and hyphens."
-  }
-
 }
 
-variable "ide_gold_tranform_lambda_name" {
-  description = "Name of the Lambda function for gold transformations"
+variable "gold_transform_lambda_arn" {
+  description = "ARN of the Lambda function for gold transformations"
   type        = string
-  default     = "gold-transform-lambda"
-
-  validation {
-    condition     = length(var.ide_gold_tranform_lambda_name) > 0 && can(regex("^[a-zA-Z0-9-]+$", var.ide_gold_tranform_lambda_name))
-    error_message = "The ide_gold_tranform_lambda_name variable must not be empty and can only contain alphanumeric characters, and hyphens."
-  }
-
 }
 
 variable "account_id" {

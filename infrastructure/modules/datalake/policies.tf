@@ -19,7 +19,7 @@ data "aws_iam_policy_document" "bronze_assume_role_policy" {
     effect = "Allow"
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:lambda:${var.region}:${var.account_id}:function:${var.ingestion_lambda_name}"]
+      identifiers = [var.ingestion_lambda_arn]
     }
     actions = ["sts:AssumeRole"]
   }
@@ -62,7 +62,7 @@ data "aws_iam_policy_document" "silver_assume_role_policy" {
     effect = "Allow"
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:lambda:${var.region}:${var.account_id}:function:${var.silver_transform_lambda_name}"]
+      identifiers = [var.silver_transform_lambda_arn]
     }
     actions = ["sts:AssumeRole"]
 
@@ -107,7 +107,7 @@ data "aws_iam_policy_document" "gold_assume_role_policy" {
     actions = ["sts:AssumeRole"]
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:lambda:${var.region}:${var.account_id}:function:${var.ide_gold_tranform_lambda_name}"]
+      identifiers = [var.gold_transform_lambda_arn]
     }
   }
 }
