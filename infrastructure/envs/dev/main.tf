@@ -21,7 +21,7 @@ module "ingestion_lambda_ecr" {
 }
 
 # Create Lambda functions from ECR images
- 
+
 module "ingestion_lambada" {
   source             = "../../modules/LambdaECR"
   name               = "ingestion-lambda-role"
@@ -60,5 +60,5 @@ module "DataLake" {
   ide_gold_tranform_lambda_name = "gold-transform-lambda"
   region                        = var.region
 
-  depends_on = [ module.ingestion_lambada, module.Silver_transform_lambada, module.Gold_transform_lambada ]
+  depends_on = [module.ingestion_lambada, module.Silver_transform_lambada, module.Gold_transform_lambada]
 }
