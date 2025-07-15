@@ -13,22 +13,22 @@ variable "datalake_name" {
 variable "ingestion_lambda_name" {
   description = "Name of the Lambda function for ingestions"
   type        = string
-  default     = "ingestions_lambda"
+  default     = "ingestions-lambda"
 
   validation {
-    condition     = length(var.ingestion_lambda_name) > 0 && can(regex("^[a-zA-Z0-9_-]+$", var.ingestion_lambda_name))
-    error_message = "The ingestion_lambda_name variable must not be empty and can only contain alphanumeric characters, underscores, and hyphens."
+    condition     = length(var.ingestion_lambda_name) > 0 && can(regex("^[a-zA-Z0-9-]+$", var.ingestion_lambda_name))
+    error_message = "The ingestion_lambda_name variable must not be empty and can only contain alphanumeric characters, and hyphens."
   }
 }
 
 variable "silver_transform_lambda_name" {
   description = "Name of the Lambda function for silver transformations"
   type        = string
-  default     = "silver_transform_lambda"
+  default     = "silver-transform-lambda"
 
   validation {
-    condition     = length(var.silver_transform_lambda_name) > 0 && can(regex("^[a-zA-Z0-9_-]+$", var.silver_transform_lambda_name))
-    error_message = "The silver_transform_lambda_name variable must not be empty  and can only contain alphanumeric characters, underscores, and hyphens."
+    condition     = length(var.silver_transform_lambda_name) > 0 && can(regex("^[a-zA-Z0-9-]+$", var.silver_transform_lambda_name))
+    error_message = "The silver_transform_lambda_name variable must not be empty  and can only contain alphanumeric characters, and hyphens."
   }
 
 }
@@ -36,11 +36,11 @@ variable "silver_transform_lambda_name" {
 variable "ide_gold_tranform_lambda_name" {
   description = "Name of the Lambda function for gold transformations"
   type        = string
-  default     = "gold_transform_lambda"
+  default     = "gold-transform-lambda"
 
   validation {
-    condition     = length(var.ide_gold_tranform_lambda_name) > 0 && can(regex("^[a-zA-Z0-9_-]+$", var.ide_gold_tranform_lambda_name))
-    error_message = "The ide_gold_tranform_lambda_name variable must not be empty and can only contain alphanumeric characters, underscores, and hyphens."
+    condition     = length(var.ide_gold_tranform_lambda_name) > 0 && can(regex("^[a-zA-Z0-9-]+$", var.ide_gold_tranform_lambda_name))
+    error_message = "The ide_gold_tranform_lambda_name variable must not be empty and can only contain alphanumeric characters, and hyphens."
   }
 
 }

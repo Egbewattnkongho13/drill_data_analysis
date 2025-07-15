@@ -21,7 +21,7 @@ module "ingestion_lambda_ecr" {
 }
 
 # Create Lambda functions from ECR images
-
+ 
 module "ingestion_lambada" {
   source             = "../../modules/LambdaECR"
   name               = "ingestion-lambda-role"
@@ -55,9 +55,10 @@ module "DataLake" {
 
   datalake_name                 = "oye-data-lake"
   account_id                    = data.aws_caller_identity.current.account_id
-  ingestion_lambda_name         = "ingestion_lambda"
-  silver_transform_lambda_name  = "silver_transform_lambda"
-  ide_gold_tranform_lambda_name = "gold_transform_lambda"
+  ingestion_lambda_name         = "ingestion-lambda"
+  silver_transform_lambda_name  = "silver-transform-lambda"
+  ide_gold_tranform_lambda_name = "gold-transform-lambda"
   region                        = var.region
 
+  depends_on = [ module.ingestion_lambada, module.Silver_transform_lambada, module.Gold_transform_lambada ]
 }
