@@ -53,7 +53,7 @@ module "Gold_transform_lambada" {
 module "DataLake" {
   source = "../../modules/datalake"
 
-  datalake_name               = "oye-data-lake"
+  datalake_name               = "oye-dl"
   account_id                  = data.aws_caller_identity.current.account_id
   ingestion_lambda_arn        = module.ingestion_lambada.arn_of_lambda_function
   silver_transform_lambda_arn = module.Silver_transform_lambada.arn_of_lambda_function
