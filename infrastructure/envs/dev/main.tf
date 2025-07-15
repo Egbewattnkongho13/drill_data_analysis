@@ -53,12 +53,12 @@ module "Gold_transform_lambada" {
 module "DataLake" {
   source = "../../modules/datalake"
 
-  datalake_name                 = "oye-data-lake"
-  account_id                    = data.aws_caller_identity.current.account_id
-  ingestion_lambda_arn          = module.ingestion_lambada.arn_of_lambda_function
-  silver_transform_lambda_arn   = module.Silver_transform_lambada.arn_of_lambda_function
-  gold_transform_lambda_arn  = module.Gold_transform_lambada.arn_of_lambda_function
-  region                        = var.region
+  datalake_name               = "oye-data-lake"
+  account_id                  = data.aws_caller_identity.current.account_id
+  ingestion_lambda_arn        = module.ingestion_lambada.arn_of_lambda_function
+  silver_transform_lambda_arn = module.Silver_transform_lambada.arn_of_lambda_function
+  gold_transform_lambda_arn   = module.Gold_transform_lambada.arn_of_lambda_function
+  region                      = var.region
 
   depends_on = [
     module.ingestion_lambada,
