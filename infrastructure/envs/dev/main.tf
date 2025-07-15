@@ -53,12 +53,16 @@ module "Gold_transform_lambada" {
 module "DataLake" {
   source = "../../modules/datalake"
 
-  datalake_name                 = "oye-data-lake"
+  datalake_name                 = "Oye-Data-lake"
   account_id                    = data.aws_caller_identity.current.account_id
-  ingestion_lambda_name         = "ingestion-lambda"
-  silver_transform_lambda_name  = "silver-transform-lambda"
-  ide_gold_tranform_lambda_name = "gold-transform-lambda"
+  ingestion_lambda_name         = module.ingestion_lambada.name_of_lambda_function
+  silver_transform_lambda_name  = module.Silver_transform_lambada.name_of_lambda_function
+  ide_gold_tranform_lambda_name = module.Gold_transform_lambada.name_of_lambda_function
   region                        = var.region
 
-  depends_on = [module.ingestion_lambada, module.Silver_transform_lambada, module.Gold_transform_lambada]
+  depends_on = [
+    module.ingestion_lambada,
+    module.Silver_transform_lambada,
+    module.Gold_transform_lambada
+  ]
 }
