@@ -13,7 +13,7 @@ resource "aws_iam_role" "bronze_ingestion_role" {
 
 resource "aws_iam_role_policy" "bronze_write_policy" {
   name   = "${var.datalake_name}-bronze-write-policy"
-  role   = aws_iam_role.bronze_ingestion_role.id
+  role   = aws_iam_role.bronze_ingestion_role.name
   policy = data.aws_iam_policy_document.bronze_write_policy.json
 
 }
@@ -34,13 +34,13 @@ resource "aws_iam_role" "silver_tansform_role" {
 
 resource "aws_iam_role_policy" "silver_write_policy" {
   name   = "${var.datalake_name}-silver-write-policy"
-  role   = aws_iam_role.silver_tansform_role.id
+  role   = aws_iam_role.silver_tansform_role.name
   policy = data.aws_iam_policy_document.silver_write_policy.json
 }
 
 resource "aws_iam_role_policy" "bronze_read_policy" {
   name   = "${var.datalake_name}-bronze-read-policy"
-  role   = aws_iam_role.silver_tansform_role.id
+  role   = aws_iam_role.silver_tansform_role.name
   policy = data.aws_iam_policy_document.bronze_read_policy.json
 }
 
@@ -58,13 +58,13 @@ resource "aws_iam_role" "gold_transform_role" {
 
 resource "aws_iam_role_policy" "gold_write_policy" {
   name   = "${var.datalake_name}-gold-write-policy"
-  role   = aws_iam_role.gold_transform_role.arn
+  role   = aws_iam_role.gold_transform_role.name
   policy = data.aws_iam_policy_document.gold_write_policy.json
 }
 
 resource "aws_iam_role_policy" "silver_read_policy" {
   name   = "${var.datalake_name}-silver-read-policy"
-  role   = aws_iam_role.gold_transform_role.id
+  role   = aws_iam_role.gold_transform_role.name
   policy = data.aws_iam_policy_document.silver_read_policy.json
 }
 

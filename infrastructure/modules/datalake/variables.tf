@@ -11,32 +11,32 @@ variable "datalake_name" {
 
 
 variable "ingestion_lambda_arn" {
-  description = "ARN of the Lambda function for ingestions"
+  description = "ARN of the IAM role for the ingestion Lambda function"
   type        = string
 
   validation {
-    condition     = can(regex("^arn:aws:lambda:[a-z]{2}-[a-z]+-[1-9][0-9]*:[0-9]{12}:function:[a-zA-Z0-9-_]+$", var.ingestion_lambda_arn))
-    error_message = "The ingestion_lambda_arn must be a valid AWS Lambda ARN."
+    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/([a-zA-Z0-9-_]+)$", var.ingestion_lambda_arn))
+    error_message = "The ingestion_lambda_arn must be a valid AWS IAM Role ARN."
   }
 }
 
 variable "silver_transform_lambda_arn" {
-  description = "ARN of the Lambda function for silver transformations"
+  description = "ARN of the IAM role for the silver transformation Lambda function"
   type        = string
 
   validation {
-    condition     = can(regex("^arn:aws:lambda:[a-z]{2}-[a-z]+-[1-9][0-9]*:[0-9]{12}:function:[a-zA-Z0-9-_]+$", var.silver_transform_lambda_arn))
-    error_message = "The silver_transform_lambda_arn must be a valid AWS Lambda ARN."
+    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/([a-zA-Z0-9-_]+)$", var.silver_transform_lambda_arn))
+    error_message = "The silver_transform_lambda_arn must be a valid AWS IAM Role ARN."
   }
 }
 
 variable "gold_transform_lambda_arn" {
-  description = "ARN of the Lambda function for gold transformations"
+  description = "ARN of the IAM role for the gold transformation Lambda function"
   type        = string
 
   validation {
-    condition     = can(regex("^arn:aws:lambda:[a-z]{2}-[a-z]+-[1-9][0-9]*:[0-9]{12}:function:[a-zA-Z0-9-_]+$", var.gold_transform_lambda_arn))
-    error_message = "The gold_transform_lambda_arn must be a valid AWS Lambda ARN."
+    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/([a-zA-Z0-9-_]+)$", var.gold_transform_lambda_arn))
+    error_message = "The gold_transform_lambda_arn must be a valid AWS IAM Role ARN."
   }
 }
 
