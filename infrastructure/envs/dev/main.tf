@@ -1,4 +1,5 @@
 data "aws_caller_identity" "current" {}
+
 module "gold_lambda_ecr" {
   source               = "../../modules/ecr"
   repository_name      = "gold-lambda-ecr"
@@ -46,4 +47,22 @@ module "Gold_transform_lambada" {
   ecr_repository_url = module.gold_lambda_ecr.repository_url
   ecr_repository_arn = module.gold_lambda_ecr.arn_of_ecr_repository
   docker_image_tag   = var.gold_docker_image_tag
+}
+
+# Setup DataLake
+module "DataLake" {
+  source = "../../modules/datalake"
+
+  datalake_name               = "oye-dl"
+  account_id                  = data.aws_caller_identity.current.account_id
+  ingestion_lambda_arn        = module.ingestion_lambada.lambda_role_arn
+  silver_transform_lambda_arn = module.Silver_transform_lambada.lambda_role_arn
+  gold_transform_lambda_arn   = module.Gold_transform_lambada.lambda_role_arn
+  region                      = var.region
+
+  depends_on = [
+    module.ingestion_lambada,
+    module.Silver_transform_lambada,
+    module.Gold_transform_lambada
+  ]
 }
