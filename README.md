@@ -93,7 +93,7 @@ The architecture consists of three main components:
 ### Installation & Setup
 1.  **Clone the repository:**
     ```bash
-    git clone <repository_url>
+    git clone <https://github.com/Egbewattnkongho13/drill_data_analysis.git>
     cd drill_data_analysis
     ```
 2.  **Configure AWS CLI:**
@@ -125,12 +125,54 @@ The architecture consists of three main components:
 
 This will deploy the S3 buckets, ECR repositories, and Lambda functions.
 
+### Local Development with Make
+
+This project includes `Makefile`s to simplify common development tasks. The main `Makefile` in the root directory can be used to build and test all lambdas at once.
+
+**Build all lambdas:**
+```bash
+make build-all
+```
+
+**Test all lambdas:**
+```bash
+make test-all
+```
+
+You can also build or test a specific lambda by specifying its name:
+
+**Build a specific lambda:**
+```bash
+make build-ingestion
+make build-silver-transform
+make build-gold-transform
+```
+
+**Test a specific lambda:**
+```bash
+make test-ingestion
+make test-silver-transform
+make test-gold-transform
+```
+
 ### Usage
 
 This section provides instructions on how to use and interact with the deployed drill data analysis pipeline.
 
 **1. Running Tests:**
-To run unit tests for a specific Lambda function:
+To run unit tests for all lambdas at once:
+```bash
+make test-all
+```
+To run tests for a specific Lambda function:
+```bash
+make test-ingestion
+# or
+make test-silver-transform
+# or
+make test-gold-transform
+```
+You can also run `pytest` directly from within a lambda's directory:
 ```bash
 cd lambdas/ingestion # or silver-transform, gold-transform
 poetry run pytest
