@@ -39,5 +39,5 @@ override.tf.json
 terraform.rc
 .vscode/*
 # Ignore Python cache files
-lambdas/ingestion/ingest/__pycache__/*
+**/__pycache__/*
 .pytest_cache/*
