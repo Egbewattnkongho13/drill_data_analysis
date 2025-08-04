@@ -5,7 +5,7 @@ import os
 import subprocess
 import tempfile
 import csv
-import pandas as pd  # type: ignore
+import pandas as pd  
 
 
 class KaggleDataHandler(DataSource):
