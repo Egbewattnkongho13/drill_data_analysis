@@ -1,7 +1,7 @@
 # Drill Data Analysis
 
+[![Lint](https://github.com/Egbewattnkongho13/drill_data_analysis/actions/workflows/ci-lint.yml/badge.svg)](https://github.com/Egbewattnkongho13/drill_data_analysis/actions/workflows/ci-lint.yml)
 [![CI Tests](https://github.com/Egbewattnkongho13/drill_data_analysis/actions/workflows/ci-tests.yml/badge.svg)](https://github.com/Egbewattnkongho13/drill_data_analysis/actions/workflows/ci-tests.yml)
-[![Lint Scrapper](https://github.com/Egbewattnkongho13/drill_data_analysis/actions/workflows/ci-lint.yml/badge.svg)](https://github.com/Egbewattnkongho13/drill_data_analysis/actions/workflows/ci-lint.yml)
 [![Build and Push Docker Images](https://github.com/Egbewattnkongho13/drill_data_analysis/actions/workflows/image-build2push.yml/badge.svg)](https://github.com/Egbewattnkongho13/drill_data_analysis/actions/workflows/image-build2push.yml)
 
 ### Description
