@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List
 
+
 class Sink(ABC):
     """
     Abstract base class for data sinks. It defines the contract for saving data

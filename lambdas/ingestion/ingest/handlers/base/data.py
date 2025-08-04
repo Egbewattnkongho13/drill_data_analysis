@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from ...sinks.base.sink import Sink
 
+
 class DataSource(ABC):
     """
     Abstract base class for data sources. It defines the contract for downloading
