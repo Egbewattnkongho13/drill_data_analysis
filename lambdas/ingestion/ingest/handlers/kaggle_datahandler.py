@@ -2,98 +2,109 @@ from .base.data import DataSource
 from ..sinks.base.sink import Sink
 from typing import List
 import os
-import subprocess
+import json
+import time
+import re
+from pathlib import Path
+from kaggle.api.kaggle_api_extended import KaggleApi
 import tempfile
-import csv
-import pandas as pd  
+from requests.exceptions import ConnectionError, Timeout, RequestException
 
+MAX_RETRIES = 5
+RETRY_DELAY_SECONDS = 5
 
 class KaggleDataHandler(DataSource):
     """
-    A data handler for downloading datasets from Kaggle.
+    A data handler for downloading raw dataset archives from Kaggle using the official Kaggle API library.
     """
 
-    def __init__(self, urls: List[str]):
+    def __init__(self, urls: List[str], username: str, api_key: str):
         """
-        Initializes the KaggleDataHandler with a list of Kaggle dataset URLs.
+        Initializes the KaggleDataHandler and sets up authentication.
 
         Args:
             urls: A list of URLs pointing to Kaggle datasets.
+            username: Your Kaggle username.
+            api_key: Your Kaggle API key.
         """
         self.urls = urls
-        print(f"Initialized KaggleDataHandler with {len(self.urls)} URLs.")
+        self._setup_kaggle_credentials(username, api_key)
+        self.api = KaggleApi()
+        self.api.authenticate()
+        print(f"Initialized and authenticated KaggleDataHandler with {len(self.urls)} URLs.")
+
+    def _setup_kaggle_credentials(self, username: str, api_key: str):
+        """
+        Creates the kaggle.json file in the expected directory within the Lambda container.
+        """
+        kaggle_dir = Path("~/.kaggle").expanduser()
+        kaggle_dir.mkdir(parents=True, exist_ok=True)
+        
+        credential_file = kaggle_dir / "kaggle.json"
+        credentials = {"username": username, "key": api_key}
+        
+        with open(credential_file, "w") as f:
+            json.dump(credentials, f)
+        
+        os.chmod(credential_file, 0o600) # Set permissions as required by Kaggle API
+
+    def _retry_download(self, slug: str, path: str, retry_count: int = 0):
+        """
+        Attempts to download a Kaggle dataset with retries.
+        """
+        try:
+            print(f"Attempting to download '{slug}' (Attempt {retry_count + 1}/{MAX_RETRIES})...")
+            # dataset_status = self.api.dataset_status(dataset=slug)
+            # print(f"Dataset Status: {dataset_status}")
+            self.api.dataset_download_files(slug, path=path, unzip=False)
+        except (ConnectionError, Timeout, RequestException) as e:
+            if retry_count < MAX_RETRIES - 1:
+                print(f"Download failed for '{slug}': {e}. Retrying in {RETRY_DELAY_SECONDS} seconds...")
+                time.sleep(RETRY_DELAY_SECONDS)
+                self._retry_download(slug, path, retry_count + 1)
+            else:
+                raise # Re-raise the exception if max retries reached
+        except Exception as e:
+            raise # Re-raise any other unexpected exceptions
 
     def download(self, sink: Sink, destination: str) -> None:
         """
-        Downloads data from the configured Kaggle URLs and saves it using the provided sink.
+        Downloads raw dataset archives from Kaggle and saves them to the provided sink.
 
         Args:
             sink: The sink to use for saving the data.
-            destination: The destination path or key for the sink.
+            destination: The base destination path/key for the sink.
         """
-        print(f"Downloading data from Kaggle URLs: {self.urls}")
+        print(f"Downloading raw data from Kaggle URLs: {self.urls}")
 
-        all_data = []
         for url in self.urls:
             try:
-                slug = "/".join(url.split("/")[-2:])
+                match = re.search(r"kaggle\.com/datasets/([^/]+/[^/]+)", url)
+                if not match:
+                    print(f"Could not extract a valid dataset slug from URL: '{url}'. Skipping.")
+                    continue
+                
+                slug = match.group(1)
+                output_filename = f"{slug.replace('/', '_')}.zip"
+                output_destination = os.path.join(destination, output_filename)
 
                 with tempfile.TemporaryDirectory() as tmpdir:
-                    print(f"Downloading dataset '{slug}' to '{tmpdir}'...")
-                    subprocess.run(
-                        [
-                            "kaggle",
-                            "datasets",
-                            "download",
-                            "-d",
-                            slug,
-                            "-p",
-                            tmpdir,
-                            "--unzip",
-                        ],
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                    )
-                    print(f"Successfully downloaded and unzipped '{slug}'.")
+                    print(f"Downloading dataset '{slug}' to temporary directory...")
+                    self._retry_download(slug, tmpdir)
+                    
+                    # The library downloads as 'dataset-slug.zip', find the actual file
+                    downloaded_file_path = os.path.join(tmpdir, f"{slug.split('/')[-1]}.zip")
 
-                    # --- Smart File Processing Logic ---
-                    for filename in os.listdir(tmpdir):
-                        file_path = os.path.join(tmpdir, filename)
-                        if filename.endswith(".xlsx"):
-                            xls = pd.ExcelFile(file_path)
-                            for sheet_name in xls.sheet_names:
-                                df = pd.read_excel(xls, sheet_name=sheet_name)
-                                df["source_sheet"] = (
-                                    sheet_name  # Add sheet name as context
-                                )
-                                all_data.extend(df.to_dict("records"))
-                            print(f"Processed Excel file: {filename}")
+                    print(f"Saving raw zip file to {output_destination}...")
+                    with open(downloaded_file_path, "rb") as f:
+                        raw_data = f.read()
+                    
+                    sink.save(raw_data, output_destination)
+                    print(f"Successfully saved {output_filename}.")
 
-                        elif filename.endswith(".csv"):
-                            with open(
-                                file_path, "r", encoding="utf-8", errors="ignore"
-                            ) as f:
-                                reader = csv.DictReader(f)
-                                for row in reader:
-                                    row["source_file"] = (
-                                        filename  # Add filename as context
-                                    )
-                                    all_data.append(row)
-                            print(f"Processed CSV file: {filename}")
-
-            except subprocess.CalledProcessError as e:
-                print(
-                    f"ERROR: Failed to download dataset from {url}. Kaggle CLI error: {e.stderr}"
-                )
+            except (ConnectionError, Timeout, RequestException) as e:
+                print(f"ERROR: Failed to download from {url} after multiple retries. Final error: {e}")
             except Exception as e:
                 print(f"An unexpected error occurred while processing {url}: {e}")
 
-        if all_data:
-            print(
-                f"Saving {len(all_data)} records to {destination} using {sink.__class__.__name__}."
-            )
-            sink.save(all_data, destination)
-        else:
-            print("No data was downloaded, nothing to save.")
-        print("Kaggle data download and save complete.")
+        print("Kaggle raw data download complete.")
