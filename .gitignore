@@ -41,3 +41,13 @@ terraform.rc
 # Ignore Python cache files
 **/__pycache__/*
 .pytest_cache/*
+
+# AWS SAM build artifacts
+.aws-sam/
+events/
+
+# Local development configuration
+lambdas/ingestion/ingest/config/dev.yml
+
+# SAM template for local testing (IAC is managed by Terraform)
+lambdas/ingestion/template.yaml
