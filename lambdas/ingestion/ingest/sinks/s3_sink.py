@@ -1,12 +1,10 @@
 from .base.sink import Sink
-from typing import Any, List
 import boto3
-import json
-
+import mimetypes
 
 class S3Sink(Sink):
     """
-    A sink that saves data to an Amazon S3 bucket.
+    A sink that saves raw data to an Amazon S3 bucket.
     """
 
     def __init__(self, bucket_name: str):
@@ -20,33 +18,34 @@ class S3Sink(Sink):
         self.s3_client = boto3.client("s3")
         print(f"Initialized S3Sink for bucket: {self.bucket_name}")
 
-    def save(self, data: List[Any], destination: str) -> None:
+    def save(self, data: bytes, destination: str) -> None:
         """
-        Saves the given data to a file in the S3 bucket.
+        Saves the given raw data to a file in the S3 bucket.
 
         Args:
-            data: A list of data records to save.
+            data: The raw binary data to save.
             destination: The key (file path) within the S3 bucket.
         """
-        print(f"Using S3Sink to save data to s3://{self.bucket_name}/{destination}")
+        print(f"Using S3Sink to save raw data to s3://{self.bucket_name}/{destination}")
 
         try:
-            # Convert the data to a JSON string
-            json_data = json.dumps(data, ensure_ascii=False, indent=4)
+            # Guess the content type from the filename
+            content_type, _ = mimetypes.guess_type(destination)
+            if content_type is None:
+                content_type = "application/octet-stream" # Default for unknown binary
 
             # Upload the data to S3
             self.s3_client.put_object(
                 Bucket=self.bucket_name,
                 Key=destination,
-                Body=json_data,
-                ContentType="data/json",
+                Body=data,
+                ContentType=content_type,
             )
 
             print(
-                f"Successfully saved {len(data)} records to s3://{self.bucket_name}/{destination}"
+                f"Successfully saved raw data to s3://{self.bucket_name}/{destination}"
             )
 
         except Exception as e:
             print(f"Error saving data to S3: {e}")
-            # Depending on requirements, you might want to raise the exception
-            # raise
+

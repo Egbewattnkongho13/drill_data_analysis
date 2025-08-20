@@ -1,36 +1,31 @@
 from .base.sink import Sink
-from typing import Any, List
 import os
-import json
-
 
 class LocalSink(Sink):
     """
-    A sink that saves data to the local filesystem.
+    A sink that saves raw data to the local filesystem.
     """
 
-    def save(self, data: List[Any], destination: str) -> None:
+    def save(self, data: bytes, destination: str) -> None:
         """
-        Saves the given data to a local file.
-
-        The destination is treated as a directory, and a file named 'data.json'
-        will be created inside it.
+        Saves the given raw data to a local file.
 
         Args:
-            data: A list of data records to save.
-            destination: The path to the directory where the data will be saved.
+            data: The raw binary data to save.
+            destination: The full path to the output file.
         """
-        print(f"Using LocalSink to save data to directory: {destination}")
+        print(f"Using LocalSink to save data to {destination}")
 
         try:
-            os.makedirs(destination, exist_ok=True)
+            # Ensure the directory exists
+            dir_name = os.path.dirname(destination)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
 
-            file_path = os.path.join(destination, "data.json")
+            with open(destination, "wb") as f:
+                f.write(data)
 
-            with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
-
-            print(f"Successfully saved {len(data)} records to {file_path}")
+            print(f"Successfully saved data to {destination}")
 
         except (IOError, OSError) as e:
             print(f"Error saving data to local file: {e}")
