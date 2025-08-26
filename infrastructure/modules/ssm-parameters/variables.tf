@@ -58,9 +58,3 @@ variable "crawler_data_source_urls" {
     error_message = "All crawler_data_source_urls must be valid URLs."
   }
 }
-
-
-
-
-
-
