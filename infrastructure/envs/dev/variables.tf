@@ -65,7 +65,7 @@ variable "kaggle_username" {
 variable "kaggle_key" {
   description = "Kaggle API key for authentication."
   type        = string
-  sensitive = true
+  sensitive   = true
 
   validation {
     condition     = can(regex("^[a-f0-9]{32}$", var.kaggle_key))
