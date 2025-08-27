@@ -25,24 +25,20 @@ case "$1" in
 esac 
 
 # Extract the value of the specified key from the
-awk -v key="$KEY" '
-    $0 == key {found=1; next}
-    found && NF == 0 {found=0}
-    found && !/^[[:space:]]*-/ {found=0}
-
-   found {
-   gsub(/^[[:space:]]*- ?/, "");
-
-    gsub(/"/, "\\\"");
-
-    urls = urls (urls ? "," : "") "\"" $0 "\""
-    }
-    END {
-    if (urls) {
-        print "[" urls "]"
-     } else {
-        print "[]"
-    }
-   }
-' "$YAML_FILE"
-
+awk -v key="$KEY" ' \
+    $0 == key {found=1; next} \
+    found && NF == 0 {found=0} \
+    found && !/^[[:space:]]*-/ {found=0} \
+ \
+   found { \
+   gsub(/^[[:space:]]*- ?/, ""); \
+   gsub(/\r$/, ""); \
+    urls = urls (urls ? "," : "") $0 \
+    } \
+    END { \
+    if (urls) { \
+        print urls \
+     } else { \
+        print "" \
+    } \
+   }' "$YAML_FILE"

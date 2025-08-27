@@ -94,21 +94,21 @@ variable "sink_bucket" {
 }
 
 variable "kaggle_data_source_urls" {
-  description = "A list of Kaggle dataset URLs to download."
-  type        = list(string)
+  description = "A comma-separated list of Kaggle dataset URLs to download."
+  type        = string
 
   validation {
-    condition     = alltrue([for url in var.kaggle_data_source_urls : can(regex("^https://www.kaggle.com/api/v1/datasets/download/.", url))])
+    condition     = alltrue([for url in split(",", var.kaggle_data_source_urls) : can(regex("^https://www.kaggle.com/api/v1/datasets/download/.", trimspace(url)))])
     error_message = "All kaggle_data_source_urls must be valid Kaggle API download URLs."
   }
 }
 
 variable "crawler_data_source_urls" {
-  description = "A list of URLs to crawl for data."
-  type        = list(string)
+  description = "A comma-separated list of URLs to crawl for data."
+  type        = string
 
   validation {
-    condition     = alltrue([for url in var.crawler_data_source_urls : can(regex("^https://.*", url))])
+    condition     = alltrue([for url in split(",", var.crawler_data_source_urls) : can(regex("^https://.*", trimspace(url)))])
     error_message = "All crawler_data_source_urls must be valid URLs."
   }
 }
