@@ -21,7 +21,8 @@ jobs:
   terraform-deploy:
     name: Deploy Terraform Configuration
     runs-on: ubuntu-latest
-
+    environment: dev
+    
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
@@ -36,7 +37,7 @@ jobs:
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: => ${{ env.terraform_version }}
+        terraform_version: ${{ env.terraform_version }}
     
     - name: Terraform Init
       run: terraform -chdir=infrastructure/envs/${{ env.environment }} init
@@ -49,21 +50,39 @@ jobs:
 
     - name: Generate tfvars
       id: generate_tfvars
+      env:
+        KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+        SINK_TYPE: ${{ vars.SINK_TYPE }}
+        S3_SINK_BUCKET: ${{ vars.S3_SINK_BUCKET }}
       run: |
         set -eu 
 
+        # Make scripts executable
         chmod +x ./ci/scripts/lambda-version.sh
-        gold_version=$(ci/scripts/lambda-version.sh gold-transform)
-        silver_version=$(ci/scripts/lambda-version.sh silver-transform)
-        ingestion_version=$(ci/scripts/lambda-version.sh ingestion)
+        chmod +x ./ci/scripts/extract-urls.sh
 
+        # Get dynamic values from scripts
+        gold_version=$(./ci/scripts/lambda-version.sh gold-transform)
+        silver_version=$(./ci/scripts/lambda-version.sh silver-transform)
+        ingestion_version=$(./ci/scripts/lambda-version.sh ingestion)
+        kaggle_urls=$(./ci/scripts/extract-urls.sh --kaggle)
+        crawler_urls=$(./ci/scripts/extract-urls.sh --crawler)
+
+        # Replace all placeholders in template file 
         sed -e "s|GOLD_VERSION|${gold_version}|g" \
-              -e "s|SILVER_VERSION|${silver_version}|g" \
-              -e "s|INGESTION_VERSION|${ingestion_version}|g"  \
-              infrastructure/envs/${{ env.environment }}/variables.tfvars.template > infrastructure/envs/${{ env.environment }}/variables.tfvars
+          -e "s|SILVER_VERSION|${silver_version}|g" \
+          -e "s|INGESTION_VERSION|${ingestion_version}|g" \
+          -e "s|KAGGLE_KEY|${KAGGLE_KEY}|g" \
+          -e "s|KAGGLE_DATASOURCE_URLS|${kaggle_urls}|g" \
+          -e "s|CRAWLER_DATASOURCE_URLS|${crawler_urls}|g" \
+          -e "s|KAGGLE_USERNAME|${KAGGLE_USERNAME}|g" \
+          -e "s|SINK_TYPE|${SINK_TYPE}|g" \
+          -e "s|S3_SINK_BUCKET|${S3_SINK_BUCKET}|g" \
+          infrastructure/envs/${{ env.environment }}/variables.tfvars.template > infrastructure/envs/${{ env.environment }}/variables.tfvars
 
     - name: Terraform Plan
       run: terraform -chdir=infrastructure/envs/${{ env.environment }} plan -var-file=variables.tfvars 
 
     - name: Terraform Apply
-      run: terraform -chdir=infrastructure/envs/${{ env.environment }} apply -var-file=variables.tfvars -auto-approve    
+      run: terraform -chdir=infrastructure/envs/${{ env.environment }} apply -var-file=variables.tfvars -auto-approve

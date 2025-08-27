@@ -1,7 +1,7 @@
 data "aws_caller_identity" "current" {}
 
 module "ssm_parameters" {
-  source = "../../modules/ssm-parameter-store"
+  source = "../../modules/ssm-parameters"
 
   kaggle_username          = var.kaggle_username
   kaggle_key               = var.kaggle_key
