@@ -46,8 +46,7 @@ terraform.rc
 .aws-sam/
 events/
 
-# Local development configuration
-lambdas/ingestion/ingest/config/dev.yml
+
 
 # SAM template for local testing (IAC is managed by Terraform)
 lambdas/ingestion/template.yaml
