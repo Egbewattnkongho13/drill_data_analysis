@@ -11,7 +11,7 @@ YAML_FILE="$(dirname "$0")/../configs/data_sources.yaml"
 KEY=""
 
 case "$1" in
-    --kaggle)
+    --kaggle) 
         KEY="KAGGLE_URLS:"
         ;;
     --crawler)
@@ -25,7 +25,7 @@ case "$1" in
 esac 
 
 # Extract the value of the specified key from the
-awk -v key="$KEY" ' { gsub(/\r$/, ""); } \
+awk -v key="$KEY" ' { gsub(/\r$/, ""); } \ 
     $0 == key {found=1; next} \
     found && NF == 0 {found=0} \
     found && !/^[[:space:]]*-/ {found=0} \
@@ -36,8 +36,8 @@ awk -v key="$KEY" ' { gsub(/\r$/, ""); } \
     } \
     END { \
     if (urls) { \
-        print "\"" urls "\"" \
+        print urls \
      } else { \
-        print "\"\"" \
+        print "" \
     } \
    }' "$YAML_FILE"
