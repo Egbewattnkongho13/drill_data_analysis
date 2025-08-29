@@ -8,10 +8,17 @@ from a .env file, allowing for a flexible and type-safe configuration system.
 import os
 from pathlib import Path
 from typing import Literal, Union, List
-import yaml # Add this import
+import yaml  # Add this import
 
-from omegaconf import OmegaConf 
-from pydantic import BaseModel, Field, DirectoryPath, HttpUrl, ValidationError, field_validator
+from omegaconf import OmegaConf
+from pydantic import (
+    BaseModel,
+    Field,
+    DirectoryPath,
+    HttpUrl,
+    ValidationError,
+    field_validator,
+)
 
 # --- Pydantic Models for Type-Safe Configuration ---
 
@@ -42,7 +49,7 @@ SinkConfig = Union[S3SinkConfig, LocalSinkConfig]
 class KaggleDataSource(BaseModel):
     """Configuration for downloading data from Kaggle."""
 
-    type: Literal["kaggle"] = "kaggle"
+    type: Literal["kaggle"] = "kaggle"]
     urls: List[HttpUrl]
 
     @field_validator("urls", mode="before")
@@ -50,8 +57,6 @@ class KaggleDataSource(BaseModel):
         if isinstance(v, str):
             return [HttpUrl(url.strip()) for url in v.split(",") if url.strip()]
         return v
-
-  
 
 class CrawlerDataSource(BaseModel):
     """Configuration for crawling and downloading data from web URLs."""
@@ -64,11 +69,6 @@ class CrawlerDataSource(BaseModel):
         if isinstance(v, str):
             return [HttpUrl(url.strip()) for url in v.split(",") if url.strip()]
         return v
-
-   
-
-
-
 
 class Settings(BaseConfig):
     """The main settings object for the application."""
@@ -110,6 +110,6 @@ except (FileNotFoundError, ValidationError) as e:
 if __name__ == "__main__":
     if settings:
         print(settings.model_dump_json(indent=4))
-
+        
 # kaggle | crawler types should always be setup by default to kaggle and crawler
 # they should resolve if the urls are there

@@ -11,3 +11,4 @@ output "gold_bucket_name" {
   value = aws_s3_bucket.gold_bucket.bucket
 
 }
+
