@@ -11,6 +11,12 @@ serve = "ingest.serve:serve"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+requests = "^2.32.4"
+beautifulsoup4 = "^4.13.4"
+boto3 = "^1.39.15"
+omegaconf = "^2.3.0"
+pydantic = "^2.11.7"
+kaggle = "^1.5.12"
 
 
 [tool.poetry.group.dev.dependencies]

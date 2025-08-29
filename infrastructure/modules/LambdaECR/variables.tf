@@ -51,3 +51,9 @@ variable "ecr_repository_arn" {
     error_message = "The ecr_repository_arn must be a valid ECR repository ARN."
   }
 }
+
+variable "ssm_parameter_arns" {
+  description = "A list of SSM parameter ARNs that the Lambda function needs access to."
+  type        = list(string)
+  default     = []
+}

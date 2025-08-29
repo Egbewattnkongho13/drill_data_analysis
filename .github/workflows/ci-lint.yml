@@ -1,5 +1,5 @@
 # check that each lambda has an updated valid version
-name: Lint Scrapper
+name: Lint
 
 on:
   pull_request:
