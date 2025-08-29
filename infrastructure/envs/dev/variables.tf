@@ -98,8 +98,8 @@ variable "kaggle_data_source_urls" {
   type        = string
 
   validation {
-    condition     = var.kaggle_data_source_urls == "" || alltrue([for url in split(",", var.kaggle_data_source_urls) : can(regex("^https://.*", trimspace(url)))])
-    error_message = "All kaggle_data_source_urls must be valid URLs starting with https://."
+    condition     = var.kaggle_data_source_urls == "" || alltrue([for url in split(",", var.kaggle_data_source_urls) : can(regex("^https://www.kaggle.com/.*", trimspace(url)))])
+    error_message = "All kaggle_data_source_urls must be valid URLs starting with https://www.kaggle.com/."
   }
 }
 
