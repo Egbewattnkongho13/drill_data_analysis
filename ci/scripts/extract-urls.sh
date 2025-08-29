@@ -2,42 +2,29 @@
 
 set -euo pipefail
 
-if [ "$#" -ne 1 ]; then 
+if [ "$#" -ne 1 ]; then
     echo "Usage: $0 [--kaggle | --crawler]"
     exit 1
 fi
 
 YAML_FILE="$(dirname "$0")/../configs/data_sources.yaml"
-KEY=""
+YAML_KEY=""
 
 case "$1" in
-    --kaggle) 
-        KEY="KAGGLE_URLS:"
+    --kaggle)
+        YAML_KEY="KAGGLE_URLS"
         ;;
-    --crawler) 
-        KEY="CRAWLER_URLS:"
+    --crawler)
+        YAML_KEY="CRAWLER_URLS"
         ;;
     *)
         echo "Invalid argument: $1"
         echo "Usage: $0 [--kaggle | --crawler]"
         exit 1
         ;;
-esac 
+esac
 
-# Extract the value of the specified key from the
-awk -v key="$KEY" ' { gsub(/\r$/, ""); }
-    $0 == key {found=1; next}
-    found && NF == 0 {found=0}
-    found && !/^[[:space:]]*-/ {found=0}
-
-   found {
-   gsub(/^[[:space:]]*- ?/, "");
-    urls = urls (urls ? "," : "") $0
-    }
-    END {
-    if (urls) {
-        print urls
-     } else {
-        print ""
-    }
-   }' "$YAML_FILE"
+# Use yq to dynamically select the key and format the URLs.
+# We use strenv to read the YAML_KEY environment variable
+export YAML_KEY
+yq -r '.[strenv('YAML_KEY')] | join(",")' "$YAML_FILE"
