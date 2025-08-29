@@ -8,10 +8,17 @@ from a .env file, allowing for a flexible and type-safe configuration system.
 import os
 from pathlib import Path
 from typing import Literal, Union, List
-import yaml # Add this import
+import yaml  # Add this import
 
-from omegaconf import OmegaConf 
-from pydantic import BaseModel, Field, DirectoryPath, HttpUrl, ValidationError, field_validator
+from omegaconf import OmegaConf
+from pydantic import (
+    BaseModel,
+    Field,
+    DirectoryPath,
+    HttpUrl,
+    ValidationError,
+    field_validator,
+)
 
 # --- Pydantic Models for Type-Safe Configuration ---
 
@@ -51,7 +58,6 @@ class KaggleDataSource(BaseModel):
             return [HttpUrl(url.strip()) for url in v.split(",") if url.strip()]
         return v
 
-  
 
 class CrawlerDataSource(BaseModel):
     """Configuration for crawling and downloading data from web URLs."""
@@ -64,10 +70,6 @@ class CrawlerDataSource(BaseModel):
         if isinstance(v, str):
             return [HttpUrl(url.strip()) for url in v.split(",") if url.strip()]
         return v
-
-   
-
-
 
 
 class Settings(BaseConfig):
