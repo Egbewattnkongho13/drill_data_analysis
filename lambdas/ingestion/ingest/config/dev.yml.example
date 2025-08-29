@@ -1,0 +1,15 @@
+environment: ${oc.env:ENVIRONMENT, dev}
+
+sink:
+  type: local
+  path: ${oc.env:LOCAL_SINK_PATH}
+
+kaggle_data_source:
+  type: kaggle
+  urls: ${oc.env:KAGGLE_URLS}
+
+crawler_data_source:
+  type: crawler
+  urls: ${oc.env:CRAWLER_URLS}
+  
+destination: ${oc.env:S3_DESTINATION, raw/dev/}

@@ -49,7 +49,7 @@ SinkConfig = Union[S3SinkConfig, LocalSinkConfig]
 class KaggleDataSource(BaseModel):
     """Configuration for downloading data from Kaggle."""
 
-    type: Literal["kaggle"]
+    type: Literal["kaggle"] = "kaggle"]
     urls: List[HttpUrl]
 
     @field_validator("urls", mode="before")
@@ -57,12 +57,11 @@ class KaggleDataSource(BaseModel):
         if isinstance(v, str):
             return [HttpUrl(url.strip()) for url in v.split(",") if url.strip()]
         return v
-
 
 class CrawlerDataSource(BaseModel):
     """Configuration for crawling and downloading data from web URLs."""
 
-    type: Literal["crawler"]
+    type: Literal["crawler"] = "crawler"
     urls: List[HttpUrl]
 
     @field_validator("urls", mode="before")
@@ -70,7 +69,6 @@ class CrawlerDataSource(BaseModel):
         if isinstance(v, str):
             return [HttpUrl(url.strip()) for url in v.split(",") if url.strip()]
         return v
-
 
 class Settings(BaseConfig):
     """The main settings object for the application."""
@@ -112,3 +110,6 @@ except (FileNotFoundError, ValidationError) as e:
 if __name__ == "__main__":
     if settings:
         print(settings.model_dump_json(indent=4))
+        
+# kaggle | crawler types should always be setup by default to kaggle and crawler
+# they should resolve if the urls are there
