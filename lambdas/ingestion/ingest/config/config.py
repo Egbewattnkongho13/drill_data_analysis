@@ -85,6 +85,8 @@ def load_config(config_path: str = None) -> Settings:
             "sink_bucket": f"/drill-data-analysis/{env}/sink/bucket_name",
             "kaggle_urls": f"/drill-data-analysis/{env}/kaggle/data_source_urls",
             "crawler_urls": f"/drill-data-analysis/{env}/crawler/data_source_urls",
+            "kaggle_username": f"/drill-data-analysis/{env}/kaggle/username",
+            "kaggle_api_key": f"/drill-data-analysis/{env}/kaggle/api_key",
         }
 
         fetched_params = {}
@@ -98,6 +100,12 @@ def load_config(config_path: str = None) -> Settings:
                     continue
                 else:
                     raise
+
+        # Set Kaggle credentials as environment variables for the Kaggle API client
+        if fetched_params.get("kaggle_username"):
+            os.environ["KAGGLE_USERNAME"] = fetched_params["kaggle_username"]
+        if fetched_params.get("kaggle_api_key"):
+            os.environ["KAGGLE_KEY"] = fetched_params["kaggle_api_key"]
 
         config_dict = {
             "environment": env,

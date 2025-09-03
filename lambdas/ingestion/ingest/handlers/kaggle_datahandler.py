@@ -13,7 +13,6 @@ kaggle_dir = Path("/tmp/.kaggle")
 kaggle_dir.mkdir(parents=True, exist_ok=True)
 os.environ["KAGGLE_CONFIG_DIR"] = str(kaggle_dir)
 
-from kaggle.api.kaggle_api_extended import KaggleApi
 import tempfile
 from requests.exceptions import ConnectionError, Timeout, RequestException
 
@@ -36,23 +35,18 @@ class KaggleDataHandler(DataSource):
         """
         self.urls = urls
         self._setup_kaggle_credentials(username, api_key)
+        from kaggle.api.kaggle_api_extended import KaggleApi
         self.api = KaggleApi()
-        self.api.authenticate()
-        print(f"Initialized and authenticated KaggleDataHandler with {len(self.urls)} URLs.")
+        # The authentication is now handled by environment variables,
+        # and the API is authenticated on import.
+        print(f"Initialized KaggleDataHandler with {len(self.urls)} URLs.")
 
     def _setup_kaggle_credentials(self, username: str, api_key: str):
         """
-        Creates the kaggle.json file in the expected directory within the Lambda container.
+        Sets the Kaggle API credentials as environment variables.
         """
-        kaggle_dir = Path(os.environ["KAGGLE_CONFIG_DIR"])
-        
-        credential_file = kaggle_dir / "kaggle.json"
-        credentials = {"username": username, "key": api_key}
-        
-        with open(credential_file, "w") as f:
-            json.dump(credentials, f)
-        
-        os.chmod(credential_file, 0o600) # Set permissions as required by Kaggle API
+        os.environ["KAGGLE_USERNAME"] = username
+        os.environ["KAGGLE_KEY"] = api_key
 
     def _retry_download(self, slug: str, path: str, retry_count: int = 0):
         """
