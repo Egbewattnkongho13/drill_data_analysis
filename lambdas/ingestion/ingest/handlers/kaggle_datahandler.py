@@ -6,6 +6,13 @@ import json
 import time
 import re
 from pathlib import Path
+
+# In AWS Lambda, only the /tmp directory is writable.
+# Set KAGGLE_CONFIG_DIR to a writable directory before importing the Kaggle API.
+kaggle_dir = Path("/tmp/.kaggle")
+kaggle_dir.mkdir(parents=True, exist_ok=True)
+os.environ["KAGGLE_CONFIG_DIR"] = str(kaggle_dir)
+
 from kaggle.api.kaggle_api_extended import KaggleApi
 import tempfile
 from requests.exceptions import ConnectionError, Timeout, RequestException
@@ -37,8 +44,7 @@ class KaggleDataHandler(DataSource):
         """
         Creates the kaggle.json file in the expected directory within the Lambda container.
         """
-        kaggle_dir = Path("~/.kaggle").expanduser()
-        kaggle_dir.mkdir(parents=True, exist_ok=True)
+        kaggle_dir = Path(os.environ["KAGGLE_CONFIG_DIR"])
         
         credential_file = kaggle_dir / "kaggle.json"
         credentials = {"username": username, "key": api_key}
