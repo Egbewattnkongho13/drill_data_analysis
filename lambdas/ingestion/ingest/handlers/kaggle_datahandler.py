@@ -37,14 +37,37 @@ class KaggleDataHandler(DataSource):
         self._setup_kaggle_credentials(username, api_key)
         from kaggle.api.kaggle_api_extended import KaggleApi
         self.api = KaggleApi()
+        self.api.authenticate() # Explicitly authenticate the API object
         # The authentication is now handled by environment variables,
         # and the API is authenticated on import.
         print(f"Initialized KaggleDataHandler with {len(self.urls)} URLs.")
 
     def _setup_kaggle_credentials(self, username: str, api_key: str):
         """
-        Sets the Kaggle API credentials as environment variables.
+        Sets up Kaggle API credentials by creating the kaggle.json file in the
+        configured KAGGLE_CONFIG_DIR.
         """
+        # The KAGGLE_CONFIG_DIR is set at the module level to /tmp/.kaggle
+        kaggle_config_dir = os.environ.get("KAGGLE_CONFIG_DIR")
+        if not kaggle_config_dir:
+            # This should not happen based on the module-level setup
+            raise ValueError("KAGGLE_CONFIG_DIR environment variable not set.")
+
+        credentials = {"username": username, "key": api_key}
+        
+        # Ensure the directory exists
+        os.makedirs(kaggle_config_dir, exist_ok=True)
+
+        # Write the credentials to kaggle.json
+        kaggle_json_path = os.path.join(kaggle_config_dir, "kaggle.json")
+        with open(kaggle_json_path, "w") as f:
+            json.dump(credentials, f)
+
+        # Set file permissions to be readable only by the owner
+        os.chmod(kaggle_json_path, 0o600)
+
+        # While writing the file is the most robust method, also set env vars
+        # as a fallback or for other library parts that might use them.
         os.environ["KAGGLE_USERNAME"] = username
         os.environ["KAGGLE_KEY"] = api_key
 
