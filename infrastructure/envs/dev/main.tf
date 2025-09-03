@@ -41,6 +41,7 @@ module "ingestion_lambda" {
   ecr_repository_arn = module.ingestion_lambda_ecr.arn_of_ecr_repository
   docker_image_tag   = var.ingestion_docker_image_tag
   ssm_parameter_arns = values(module.ssm_parameters.parameter_arns)
+  timeout            = 120
 }
 
 

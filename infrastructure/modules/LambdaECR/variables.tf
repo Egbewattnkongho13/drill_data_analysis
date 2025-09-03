@@ -57,3 +57,9 @@ variable "ssm_parameter_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "timeout" {
+  description = "The timeout for the Lambda function in seconds."
+  type        = number
+  default     = 30
+}

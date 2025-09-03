@@ -3,6 +3,7 @@ resource "aws_lambda_function" "lambbda_from_ecr" {
   role          = aws_iam_role.lambda_role.arn
   package_type  = "Image"
   image_uri     = "${var.ecr_repository_url}:${var.docker_image_tag}"
+  timeout       = var.timeout
 
   tags = {
     Name = "LambdaFunctionFromECR"
