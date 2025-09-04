@@ -37,7 +37,7 @@ class KaggleDataHandler(DataSource):
         self._setup_kaggle_credentials(username, api_key)
         from kaggle.api.kaggle_api_extended import KaggleApi
         self.api = KaggleApi()
-        self.api.authenticate() # Explicitly authenticate the API object
+        self.api.authenticate()
         # The authentication is now handled by environment variables,
         # and the API is authenticated on import.
         print(f"Initialized KaggleDataHandler with {len(self.urls)} URLs.")
@@ -131,3 +131,4 @@ class KaggleDataHandler(DataSource):
                 print(f"An unexpected error occurred while processing {url}: {e}")
 
         print("Kaggle raw data download complete.")
+
