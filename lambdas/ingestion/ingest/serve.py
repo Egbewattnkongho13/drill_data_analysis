@@ -31,7 +31,11 @@ def serve(event=None, context=None):
 
     if settings.sink.type == "s3":
         if hasattr(settings.sink, "bucket_name") and settings.sink.bucket_name:
-            sink = S3Sink(bucket_name=settings.sink.bucket_name)
+            bronze_ingestion_role_arn = os.environ.get("BRONZE_INGESTION_ROLE_ARN")
+            if not bronze_ingestion_role_arn:
+                logger.error("BRONZE_INGESTION_ROLE_ARN environment variable not set for S3 sink. Exiting.")
+                return
+            sink = S3Sink(bucket_name=settings.sink.bucket_name, assume_role_arn=bronze_ingestion_role_arn)
             destination_path = settings.destination
         else:
             logger.error("S3 sink is configured but bucket_name is missing.")
