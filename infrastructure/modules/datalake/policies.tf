@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "bronze_write_policy" {
       "s3:PutObject",
       "s3:DeleteObject"
     ]
-    resources = ["arn:aws:s3:::${var.datalake_name}-bronze/drill_data/*"]
+    resources = ["arn:aws:s3:::${var.datalake_name}-bronze/drill-data/*"]
   }
 }
 
