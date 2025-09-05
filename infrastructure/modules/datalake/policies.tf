@@ -1,16 +1,18 @@
 # Bronze Layer Policies
 data "aws_iam_policy_document" "bronze_write_policy" {
   statement {
+    effect    = "Allow"
+    actions   = ["s3:ListBucket"]
+    resources = ["arn:aws:s3:::${var.datalake_name}-bronze"]
+  }
+
+  statement {
     effect = "Allow"
     actions = [
-      "s3:ListBucket",
       "s3:PutObject",
       "s3:DeleteObject"
     ]
-    resources = [
-      "arn:aws:s3:::${var.datalake_name}-bronze",
-      "arn:aws:s3:::${var.datalake_name}-bronze/drill_data/*"
-    ]
+    resources = ["arn:aws:s3:::${var.datalake_name}-bronze/drill_data/*"]
   }
 }
 
