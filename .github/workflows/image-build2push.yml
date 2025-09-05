@@ -51,8 +51,8 @@ jobs:
           docker build -t ingestion-lambda-ecr -f lambdas/ingestion/Dockerfile lambdas/ingestion
           docker tag ingestion-lambda-ecr:latest ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda-ecr:${{ steps.get_ingestion_version.outputs.LAMBDA_VERSION }}
         
+      ## if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       - name: Push Docker Image for Ingestion Lambda
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           docker push ${{ steps.login-ecr.outputs.registry }}/ingestion-lambda-ecr:${{ steps.get_ingestion_version.outputs.LAMBDA_VERSION }}
 

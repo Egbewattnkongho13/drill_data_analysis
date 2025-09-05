@@ -1,10 +1,17 @@
 name: Terraform Deployment 
 on: 
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'dev'
+        type: string
   pull_request:
     branches:
       - main
-    paths:
-        - 'infrastructure/**'  
+    # paths:
+    #     - 'infrastructure/**'  
 
 
 permissions:

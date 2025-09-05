@@ -1,27 +1,29 @@
 # Bronze Layer Policies
 data "aws_iam_policy_document" "bronze_write_policy" {
   statement {
+    effect    = "Allow"
+    actions   = ["s3:ListBucket"]
+    resources = ["arn:aws:s3:::${var.datalake_name}-bronze"]
+  }
+
+  statement {
     effect = "Allow"
     actions = [
-      "s3:ListBucket",
       "s3:PutObject",
       "s3:DeleteObject"
     ]
-    resources = [
-      "arn:aws:s3:::${var.datalake_name}-bronze",
-      "arn:aws:s3:::${var.datalake_name}-bronze/drill_data/*"
-    ]
+    resources = ["arn:aws:s3:::${var.datalake_name}-bronze/drill-data/*"]
   }
 }
 
-data "aws_iam_policy_document" "bronze_assume_role_policy" {
+data "aws_iam_policy_document" "lambda_assume_role_policy" {
   statement {
-    effect = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = [var.ingestion_lambda_arn]
-    }
+    effect  = "Allow"
     actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
   }
 }
 
@@ -57,17 +59,7 @@ data "aws_iam_policy_document" "bronze_read_policy" {
   }
 }
 
-data "aws_iam_policy_document" "silver_assume_role_policy" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = [var.silver_transform_lambda_arn]
-    }
-    actions = ["sts:AssumeRole"]
 
-  }
-}
 
 
 # Gold Layer Policies
@@ -101,13 +93,3 @@ data "aws_iam_policy_document" "silver_read_policy" {
   }
 }
 
-data "aws_iam_policy_document" "gold_assume_role_policy" {
-  statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "AWS"
-      identifiers = [var.gold_transform_lambda_arn]
-    }
-  }
-}

@@ -6,7 +6,13 @@ import json
 import time
 import re
 from pathlib import Path
-from kaggle.api.kaggle_api_extended import KaggleApi
+
+# In AWS Lambda, only the /tmp directory is writable.
+# Set KAGGLE_CONFIG_DIR to a writable directory before importing the Kaggle API.
+kaggle_dir = Path("/tmp/.kaggle")
+kaggle_dir.mkdir(parents=True, exist_ok=True)
+os.environ["KAGGLE_CONFIG_DIR"] = str(kaggle_dir)
+
 import tempfile
 from requests.exceptions import ConnectionError, Timeout, RequestException
 
@@ -29,24 +35,41 @@ class KaggleDataHandler(DataSource):
         """
         self.urls = urls
         self._setup_kaggle_credentials(username, api_key)
+        from kaggle.api.kaggle_api_extended import KaggleApi
         self.api = KaggleApi()
         self.api.authenticate()
-        print(f"Initialized and authenticated KaggleDataHandler with {len(self.urls)} URLs.")
+        # The authentication is now handled by environment variables,
+        # and the API is authenticated on import.
+        print(f"Initialized KaggleDataHandler with {len(self.urls)} URLs.")
 
     def _setup_kaggle_credentials(self, username: str, api_key: str):
         """
-        Creates the kaggle.json file in the expected directory within the Lambda container.
+        Sets up Kaggle API credentials by creating the kaggle.json file in the
+        configured KAGGLE_CONFIG_DIR.
         """
-        kaggle_dir = Path("~/.kaggle").expanduser()
-        kaggle_dir.mkdir(parents=True, exist_ok=True)
-        
-        credential_file = kaggle_dir / "kaggle.json"
+        # The KAGGLE_CONFIG_DIR is set at the module level to /tmp/.kaggle
+        kaggle_config_dir = os.environ.get("KAGGLE_CONFIG_DIR")
+        if not kaggle_config_dir:
+            # This should not happen based on the module-level setup
+            raise ValueError("KAGGLE_CONFIG_DIR environment variable not set.")
+
         credentials = {"username": username, "key": api_key}
         
-        with open(credential_file, "w") as f:
+        # Ensure the directory exists
+        os.makedirs(kaggle_config_dir, exist_ok=True)
+
+        # Write the credentials to kaggle.json
+        kaggle_json_path = os.path.join(kaggle_config_dir, "kaggle.json")
+        with open(kaggle_json_path, "w") as f:
             json.dump(credentials, f)
-        
-        os.chmod(credential_file, 0o600) # Set permissions as required by Kaggle API
+
+        # Set file permissions to be readable only by the owner
+        os.chmod(kaggle_json_path, 0o600)
+
+        # While writing the file is the most robust method, also set env vars
+        # as a fallback or for other library parts that might use them.
+        os.environ["KAGGLE_USERNAME"] = username
+        os.environ["KAGGLE_KEY"] = api_key
 
     def _retry_download(self, slug: str, path: str, retry_count: int = 0):
         """
@@ -108,3 +131,4 @@ class KaggleDataHandler(DataSource):
                 print(f"An unexpected error occurred while processing {url}: {e}")
 
         print("Kaggle raw data download complete.")
+
