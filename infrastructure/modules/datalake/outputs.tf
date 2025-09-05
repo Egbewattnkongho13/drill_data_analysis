@@ -12,7 +12,3 @@ output "gold_bucket_name" {
 
 }
 
-output "bronze_ingestion_role_arn" {
-  value = aws_iam_role.bronze_ingestion_role.arn
-}
-
