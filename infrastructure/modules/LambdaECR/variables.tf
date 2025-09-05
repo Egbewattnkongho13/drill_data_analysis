@@ -63,9 +63,3 @@ variable "timeout" {
   type        = number
   default     = 30
 }
-
-variable "environment_variables" {
-  description = "A map of environment variables to pass to the Lambda function."
-  type        = map(string)
-  default     = {}
-}
