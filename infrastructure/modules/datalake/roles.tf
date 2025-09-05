@@ -21,7 +21,7 @@ resource "aws_iam_role_policy" "ingestion_lambda_write_policy" {
 resource "aws_iam_role" "silver_tansform_role" {
   name = "${var.datalake_name}-silver-transform-role"
 
-  assume_role_policy = data.aws_iam_policy_document.silver_assume_role_policy.json
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 
   tags = {
     Layer = "silver"
@@ -47,7 +47,7 @@ resource "aws_iam_role_policy" "bronze_read_policy" {
 resource "aws_iam_role" "gold_transform_role" {
   name = "${var.datalake_name}-gold-transform-role"
 
-  assume_role_policy = data.aws_iam_policy_document.gold_assume_role_policy.json
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 
   tags = {
     Layer = "gold"

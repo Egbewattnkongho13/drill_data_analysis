@@ -57,17 +57,7 @@ data "aws_iam_policy_document" "bronze_read_policy" {
   }
 }
 
-data "aws_iam_policy_document" "silver_assume_role_policy" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = [var.silver_transform_lambda_arn]
-    }
-    actions = ["sts:AssumeRole"]
 
-  }
-}
 
 
 # Gold Layer Policies
@@ -101,13 +91,3 @@ data "aws_iam_policy_document" "silver_read_policy" {
   }
 }
 
-data "aws_iam_policy_document" "gold_assume_role_policy" {
-  statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "AWS"
-      identifiers = [var.gold_transform_lambda_arn]
-    }
-  }
-}

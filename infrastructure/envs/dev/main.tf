@@ -35,7 +35,7 @@ module "ingestion_lambda_ecr" {
 
 module "ingestion_lambda" {
   source             = "../../modules/LambdaECR"
-  name               = "ingestion-lambda-role"
+  lambda_role_arn    = module.data_lake.ingestion_lambda_execution_role_arn
   lambda_name        = "ingestion-lambda"
   ecr_repository_url = module.ingestion_lambda_ecr.repository_url
   ecr_repository_arn = module.ingestion_lambda_ecr.arn_of_ecr_repository
@@ -47,7 +47,7 @@ module "ingestion_lambda" {
 
 module "silver_transform_lambda" {
   source             = "../../modules/LambdaECR"
-  name               = "silver-transform-lambda-role"
+  lambda_role_arn    = module.data_lake.silver_transform_role_arn
   lambda_name        = "silver-transform-lambda"
   ecr_repository_url = module.silver_lambda_ecr.repository_url
   ecr_repository_arn = module.silver_lambda_ecr.arn_of_ecr_repository
@@ -56,7 +56,7 @@ module "silver_transform_lambda" {
 
 module "gold_transform_lambda" {
   source             = "../../modules/LambdaECR"
-  name               = "gold-transform-lambda-role"
+  lambda_role_arn    = module.data_lake.gold_transform_role_arn
   lambda_name        = "gold-transform-lambda"
   ecr_repository_url = module.gold_lambda_ecr.repository_url
   ecr_repository_arn = module.gold_lambda_ecr.arn_of_ecr_repository
@@ -67,16 +67,7 @@ module "gold_transform_lambda" {
 module "data_lake" {
   source = "../../modules/datalake"
 
-  datalake_name               = "oye-dl"
-  account_id                  = data.aws_caller_identity.current.account_id
-  ingestion_lambda_arn        = module.ingestion_lambda.lambda_role_arn
-  silver_transform_lambda_arn = module.silver_transform_lambda.lambda_role_arn
-  gold_transform_lambda_arn   = module.gold_transform_lambda.lambda_role_arn
-  region                      = var.region
-
-  depends_on = [
-    module.ingestion_lambda,
-    module.silver_transform_lambda,
-    module.gold_transform_lambda
-  ]
+  datalake_name = "oye-dl"
+  account_id    = data.aws_caller_identity.current.account_id
+  region        = var.region
 }
