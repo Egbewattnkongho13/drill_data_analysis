@@ -12,3 +12,8 @@ output "gold_bucket_name" {
 
 }
 
+output "ingestion_lambda_execution_role_arn" {
+  description = "ARN of the IAM role for the ingestion Lambda function"
+  value       = aws_iam_role.ingestion_lambda_execution_role.arn
+}
+

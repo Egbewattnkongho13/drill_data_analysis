@@ -10,15 +10,7 @@ variable "datalake_name" {
 }
 
 
-variable "ingestion_lambda_arn" {
-  description = "ARN of the IAM role for the ingestion Lambda function"
-  type        = string
 
-  validation {
-    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/([a-zA-Z0-9-_]+)$", var.ingestion_lambda_arn))
-    error_message = "The ingestion_lambda_arn must be a valid AWS IAM Role ARN."
-  }
-}
 
 variable "silver_transform_lambda_arn" {
   description = "ARN of the IAM role for the silver transformation Lambda function"

@@ -14,14 +14,14 @@ data "aws_iam_policy_document" "bronze_write_policy" {
   }
 }
 
-data "aws_iam_policy_document" "bronze_assume_role_policy" {
+data "aws_iam_policy_document" "lambda_assume_role_policy" {
   statement {
-    effect = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = [var.ingestion_lambda_arn]
-    }
+    effect  = "Allow"
     actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
   }
 }
 
