@@ -121,7 +121,7 @@ def load_config(config_path: str = None) -> Settings:
                 "type": "crawler",
                 "urls": fetched_params.get("crawler_urls"),
             },
-            "destination": "/drill-data"  # Default destination in Lambda
+            "destination": "drill-data"  # Default destination in Lambda
         }
 
         if config_dict["sink"]["type"] is None:
