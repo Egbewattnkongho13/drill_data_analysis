@@ -1,13 +1,11 @@
-variable "name" {
-  description = "The name of the IAM role for the Lambda function"
+variable "lambda_role_arn" {
+  description = "The ARN of the IAM role for the Lambda function"
   type        = string
-  default     = "lambda_role"
 
   validation {
-    condition     = length(var.name) > 0
-    error_message = "The name variable must not be empty."
+    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/.*$", var.lambda_role_arn))
+    error_message = "The lambda_role_arn must be a valid IAM role ARN."
   }
-
 }
 
 variable "lambda_name" {
