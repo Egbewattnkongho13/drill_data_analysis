@@ -7,6 +7,7 @@ resource "aws_iam_role" "ingestion_lambda_execution_role" {
 
   tags = {
     Layer = "bronze"
+    Test-Tag = "hello-world"
   }
 }
 
