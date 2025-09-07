@@ -1,6 +1,11 @@
 from .base.sink import Sink
 import boto3
 import mimetypes
+from botocore.exceptions import ClientError
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class S3Sink(Sink):
     """
@@ -16,17 +21,30 @@ class S3Sink(Sink):
         """
         self.bucket_name = bucket_name
         self.s3_client = boto3.client("s3")
-        print(f"Initialized S3Sink for bucket: {self.bucket_name}")
+        logger.info(f"Initialized S3Sink for bucket: {self.bucket_name}")
 
     def save(self, data: bytes, destination: str) -> None:
         """
-        Saves the given raw data to a file in the S3 bucket.
+        Saves the given raw data to a file in the S3 bucket if it does not already exist.
 
         Args:
             data: The raw binary data to save.
             destination: The key (file path) within the S3 bucket.
         """
-        print(f"Using S3Sink to save raw data to s3://{self.bucket_name}/{destination}")
+        logger.info(f"Checking for existing object at s3://{self.bucket_name}/{destination}")
+
+        try:
+            self.s3_client.head_object(Bucket=self.bucket_name, Key=destination)
+            logger.info(f"Object s3://{self.bucket_name}/{destination} already exists. Skipping.")
+            return
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                # Object does not exist, so we can proceed with the upload
+                logger.info(f"Object not found. Proceeding with upload to s3://{self.bucket_name}/{destination}")
+            else:
+                # Some other error occurred
+                logger.error(f"Error checking for object existence: {e}")
+                return # Do not proceed if we can't verify existence
 
         try:
             # Guess the content type from the filename
@@ -42,10 +60,10 @@ class S3Sink(Sink):
                 ContentType=content_type,
             )
 
-            print(
+            logger.info(
                 f"Successfully saved raw data to s3://{self.bucket_name}/{destination}"
             )
 
         except Exception as e:
-            print(f"Error saving data to S3: {e}")
+            logger.error(f"Error saving data to S3: {e}")
 

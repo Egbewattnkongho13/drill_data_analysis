@@ -10,7 +10,8 @@ data "aws_iam_policy_document" "bronze_write_policy" {
     effect = "Allow"
     actions = [
       "s3:PutObject",
-      "s3:DeleteObject"
+      "s3:DeleteObject",
+      "s3:GetObject"
     ]
     resources = ["arn:aws:s3:::${var.datalake_name}-bronze/drill-data/*"]
   }
