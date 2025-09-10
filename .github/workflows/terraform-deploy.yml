@@ -10,8 +10,8 @@ on:
   pull_request:
     branches:
       - main
-    # paths:
-    #     - 'infrastructure/**'  
+    paths:
+        - 'infrastructure/**'  
 
 
 permissions:
