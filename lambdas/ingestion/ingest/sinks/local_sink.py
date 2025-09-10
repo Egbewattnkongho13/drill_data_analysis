@@ -1,5 +1,10 @@
+import logging
 from .base.sink import Sink
 import os
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class LocalSink(Sink):
     """
@@ -14,7 +19,7 @@ class LocalSink(Sink):
             data: The raw binary data to save.
             destination: The full path to the output file.
         """
-        print(f"Using LocalSink to save data to {destination}")
+        logger.info(f"Using LocalSink to save data to {destination}")
 
         try:
             # Ensure the directory exists
@@ -25,7 +30,7 @@ class LocalSink(Sink):
             with open(destination, "wb") as f:
                 f.write(data)
 
-            print(f"Successfully saved data to {destination}")
+            logger.info(f"Successfully saved data to {destination}")
 
         except (IOError, OSError) as e:
-            print(f"Error saving data to local file: {e}")
+            logger.error(f"Error saving data to local file: {e}")
