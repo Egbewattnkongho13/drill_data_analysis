@@ -6,6 +6,7 @@ from a .env file, allowing for a flexible and type-safe configuration system.
 """
 
 import os
+import logging
 from pathlib import Path
 from typing import Literal, Union, List
 import yaml
@@ -20,6 +21,10 @@ from pydantic import (
     ValidationError,
     field_validator,
 )
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # --- Pydantic Models for Type-Safe Configuration ---
 
@@ -77,7 +82,7 @@ def load_config(config_path: str = None) -> Settings:
         # Check for AWS credentials with a short timeout to fail fast
         boto3.client('sts', region_name='us-east-1').get_caller_identity()
         
-        print("AWS credentials detected. Attempting to load config from AWS Parameter Store...")
+        logger.info("AWS credentials detected. Attempting to load config from AWS Parameter Store...")
         ssm_client = boto3.client('ssm')
         
         param_names = {
@@ -96,7 +101,7 @@ def load_config(config_path: str = None) -> Settings:
                 fetched_params[key] = parameter['Parameter']['Value']
             except ClientError as e:
                 if e.response['Error']['Code'] == 'ParameterNotFound':
-                    print(f"Warning: SSM Parameter '{name}' not found.")
+                    logger.warning(f"SSM Parameter '{name}' not found.")
                     continue
                 else:
                     raise
@@ -128,16 +133,16 @@ def load_config(config_path: str = None) -> Settings:
             del config_dict["sink"]
 
         conf = OmegaConf.create(config_dict)
-        print("Successfully loaded configuration from AWS Parameter Store.")
+        logger.info("Successfully loaded configuration from AWS Parameter Store.")
         return Settings(**conf)
 
     except (NoCredentialsError, EndpointConnectionError, ClientError) as e:
-        print(f"Could not connect to AWS. Assuming local environment. Error: {e}")
+        logger.warning(f"Could not connect to AWS. Assuming local environment. Error: {e}")
     except Exception as e:
-        print(f"An unexpected error occurred loading from Parameter Store: {e}")
+        logger.error(f"An unexpected error occurred loading from Parameter Store: {e}")
 
     # --- Local Environment: Fallback to local YAML file ---
-    print("Loading config from local YAML file...")
+    logger.info("Loading config from local YAML file...")
     if config_path is None:
         config_path = f"ingest/config/{env}.yml"
 
@@ -145,7 +150,7 @@ def load_config(config_path: str = None) -> Settings:
         conf = OmegaConf.load(config_path)
         return Settings(**conf)
     except Exception as e:
-        print(f"ERROR: Could not load or validate configuration from {config_path}. {e}")
+        logger.error(f"ERROR: Could not load or validate configuration from {config_path}. {e}")
         return None
 
 
@@ -153,7 +158,7 @@ def load_config(config_path: str = None) -> Settings:
 try:
     settings = load_config()
 except (FileNotFoundError, ValidationError) as e:
-    print(f"ERROR: Could not load or validate configuration. {e}")
+    logger.error(f"ERROR: Could not load or validate configuration. {e}")
     settings = None
 
 if __name__ == "__main__":
