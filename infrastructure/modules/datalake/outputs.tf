@@ -12,3 +12,17 @@ output "gold_bucket_name" {
 
 }
 
+output "ingestion_lambda_execution_role_arn" {
+  description = "ARN of the IAM role for the ingestion Lambda function"
+  value       = aws_iam_role.ingestion_lambda_execution_role.arn
+}
+
+output "silver_transform_role_arn" {
+  description = "ARN of the IAM role for the silver transform Lambda function"
+  value       = aws_iam_role.silver_tansform_role.arn
+}
+
+output "gold_transform_role_arn" {
+  description = "ARN of the IAM role for the gold transform Lambda function"
+  value       = aws_iam_role.gold_transform_role.arn
+}

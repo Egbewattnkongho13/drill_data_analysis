@@ -78,7 +78,7 @@ jobs:
               with:
                 python-version: '3.12'
             
-            - name: Innstall Poetry
+            - name: Install Poetry
               uses: snok/install-poetry@v1
               with:
                 version: '1.8.0'

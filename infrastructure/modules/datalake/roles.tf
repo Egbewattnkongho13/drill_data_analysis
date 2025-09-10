@@ -1,21 +1,20 @@
 # creates IAM roles for the bronze layer of the data lake
-resource "aws_iam_role" "bronze_ingestion_role" {
-  name = "${var.datalake_name}-bronze-ingestion-role"
+# creates IAM role for the ingestion lambda
+resource "aws_iam_role" "ingestion_lambda_execution_role" {
+  name = "${var.datalake_name}-ingestion-lambda-execution-role"
 
-  assume_role_policy = data.aws_iam_policy_document.bronze_assume_role_policy.json
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 
   tags = {
     Layer = "bronze"
+    Test-Tag = "hello-world"
   }
-
-
 }
 
-resource "aws_iam_role_policy" "bronze_write_policy" {
-  name   = "${var.datalake_name}-bronze-write-policy"
-  role   = aws_iam_role.bronze_ingestion_role.name
+resource "aws_iam_role_policy" "ingestion_lambda_write_policy" {
+  name   = "${var.datalake_name}-ingestion-lambda-write-policy"
+  role   = aws_iam_role.ingestion_lambda_execution_role.id
   policy = data.aws_iam_policy_document.bronze_write_policy.json
-
 }
 
 # creates IAM roles for the silver layer of the data lake
@@ -23,7 +22,7 @@ resource "aws_iam_role_policy" "bronze_write_policy" {
 resource "aws_iam_role" "silver_tansform_role" {
   name = "${var.datalake_name}-silver-transform-role"
 
-  assume_role_policy = data.aws_iam_policy_document.silver_assume_role_policy.json
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 
   tags = {
     Layer = "silver"
@@ -49,7 +48,7 @@ resource "aws_iam_role_policy" "bronze_read_policy" {
 resource "aws_iam_role" "gold_transform_role" {
   name = "${var.datalake_name}-gold-transform-role"
 
-  assume_role_policy = data.aws_iam_policy_document.gold_assume_role_policy.json
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 
   tags = {
     Layer = "gold"
