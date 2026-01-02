@@ -9,7 +9,7 @@ class Sink(ABC):
     """
 
     @abstractmethod
-    def save(self, data: bytes, destination: str) -> None:
+    def save(self, data: Any, destination: str) -> None:
         """
         Saves the given data to the specified destination.
 

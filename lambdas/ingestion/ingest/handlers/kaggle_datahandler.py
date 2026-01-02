@@ -125,10 +125,10 @@ class KaggleDataHandler(DataSource):
 
                     logger.info(f"Saving raw zip file to {output_destination}...")
                     with open(downloaded_file_path, "rb") as f:
-                        raw_data = f.read()
+                        # Pass the file handle directly to the sink for streaming
+                        sink.save(f, output_destination)
                     
-                    sink.save(raw_data, output_destination)
-                    logger.info(f"Successfully saved {output_filename}.")
+                    logger.info(f"Successfully initiated save for {output_filename}.")
 
             except (ConnectionError, Timeout, RequestException) as e:
                 logger.error(f"Failed to download from {url} after multiple retries. Final error: {e}")
