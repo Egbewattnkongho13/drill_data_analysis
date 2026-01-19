@@ -1,3 +1,5 @@
+data "aws_region" "current" {}
+
 data "aws_iam_policy_document" "glue_job_policy_doc" {
   statement {
     effect = "Allow"
