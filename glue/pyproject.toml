@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "glue-ingestion"
+version = "0.1.0"
+description = "AWS Glue job for ingesting data from Kaggle."
+authors = ["Egbewatt Nkongho <egbewattnkonghob@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "ingestion" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "^2.32.4"
+boto3 = "^1.39.15"
+omegaconf = "^2.3.0"
+pydantic = "^2.11.7"
+kaggle = "^1.5.12"
+pyspark = "^3.5.1" # Essential for AWS Glue
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+pytest = "^8.4.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

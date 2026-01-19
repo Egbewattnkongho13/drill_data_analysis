@@ -1,0 +1,12 @@
+environment: dev
+
+sink:
+  type: local
+  path: /tmp/glue_ingestion_output # Example local path
+
+kaggle_data_source:
+  type: kaggle
+  urls:
+    - https://www.kaggle.com/datasets/afrniomelo/3w-dataset
+  
+destination: raw/dev/glue_ingestion/
