@@ -45,6 +45,18 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ${{ env.terraform_version }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: '1.8.0'
+        virtualenvs-create: false
+        virtualenvs-in-project: true
     
     - name: Terraform Init
       run: terraform -chdir=infrastructure/envs/${{ env.environment }} init
