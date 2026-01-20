@@ -25,9 +25,24 @@ env:
   aws_region: us-east-1
 
 jobs:
+  build-glue-jobs-wheels:
+    name: Build Glue Job Wheels
+    runs-on: ubuntu-latest
+    environment: dev
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Build Glue Job Wheels
+      run: |
+        chmod +x ./ci/scripts/build-glue-wheels.sh
+        ./ci/scripts/build-glue-wheels.sh
+
   terraform-deploy:
     name: Deploy Terraform Configuration
     runs-on: ubuntu-latest
+    needs: build-glue-jobs-wheels
     environment: dev
     
     steps:
@@ -99,10 +114,6 @@ jobs:
           -e "s|SINK_TYPE|${SINK_TYPE}|g" \
           -e "s|S3_SINK_BUCKET|${S3_SINK_BUCKET}|g" \
           infrastructure/envs/${{ env.environment }}/variables.tfvars.template > infrastructure/envs/${{ env.environment }}/variables.tfvars
-
-    - name: create temp wheel_name file
-      run: |
-        cat > ./glue/dist/wheel_name.txt # temp file
 
     - name: Terraform Plan
       run: terraform -chdir=infrastructure/envs/${{ env.environment }} plan -var-file=variables.tfvars 
