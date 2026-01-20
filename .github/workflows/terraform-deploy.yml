@@ -100,6 +100,10 @@ jobs:
           -e "s|S3_SINK_BUCKET|${S3_SINK_BUCKET}|g" \
           infrastructure/envs/${{ env.environment }}/variables.tfvars.template > infrastructure/envs/${{ env.environment }}/variables.tfvars
 
+    - name: create temp wheel_name file
+      run: |
+        cat > ./glue/dist/wheel_name.txt # temp file
+
     - name: Terraform Plan
       run: terraform -chdir=infrastructure/envs/${{ env.environment }} plan -var-file=variables.tfvars 
 
