@@ -34,7 +34,7 @@ mv "$INGESTION_WHEEL_PATH" "$DIST_DIR/$FINAL_WHEEL_NAME"
 echo "Ingestion wheel built at: $DIST_DIR/$FINAL_WHEEL_NAME"
 
 # Write the wheel name to a file for Terraform to read
-echo "$FINAL_WHEEL_NAME" > "$DIST_DIR/wheel_name.txt"
+echo -n "$FINAL_WHEEL_NAME" > "$DIST_DIR/wheel_name.txt"
 
 # --- Final Artifact Creation ---
 echo "Checking final wheel artifact: $FINAL_WHEEL_NAME..."
