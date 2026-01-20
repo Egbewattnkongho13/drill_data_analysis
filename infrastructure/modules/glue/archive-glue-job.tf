@@ -38,7 +38,7 @@ resource "aws_s3_object" "glue_job_wheel" {
   bucket = aws_s3_bucket.glue_assets.id
   key    = data.local_file.wheel_filename.content
   source = abspath("${path.module}/../../../glue/dist/${data.local_file.wheel_filename.content}")
-  etag   = filemd5(abspath("${path.module}/../../../glue/dist/${data.local_file.wheel_filename.content}"))
+
 
   depends_on = [
     null_resource.run_bundle_script,
