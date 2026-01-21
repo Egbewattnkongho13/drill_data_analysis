@@ -42,8 +42,8 @@ jobs:
     - name: Install and Configure Poetry
       run: |
         pip install poetry==1.8.0
-        poetry config virtualenvs.create false
-        poetry config virtualenvs.in-project true
+        # poetry config virtualenvs.create false
+        # poetry config virtualenvs.in-project true
 
     - name: Build Glue Job Wheels
       run: |
@@ -51,7 +51,7 @@ jobs:
         ./ci/scripts/build-glue-wheels.sh
 
     - name: Upload Glue Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: glue-artifacts
         path: glue/dist/
@@ -67,10 +67,16 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Download Glue Artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v7
       with:
         name: glue-artifacts
         path: glue/dist/
+
+    - name: Wheel Paths Check
+      run: |
+        echo "Checking for built wheel files..."
+        ls glue/dist/*.whl
+        ls glue/dist/wheel_name.txt
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v3

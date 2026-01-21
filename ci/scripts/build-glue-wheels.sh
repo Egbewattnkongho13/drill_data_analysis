@@ -27,7 +27,8 @@ rm -rf "$DIST_DIR" *.egg-info
 
 # --- Local Package Build ---
 echo "Building wheel for local 'ingestion' package..."
-python -m poetry build --format wheel -o "$DIST_DIR"
+poetry install --sync
+poetry build --format wheel -o "$DIST_DIR"
 INGESTION_WHEEL_PATH=$(ls "$DIST_DIR"/glue_ingestion-*.whl | head -n 1)
 if [ -z "$INGESTION_WHEEL_PATH" ]; then
     echo "Error: Ingestion wheel not found in $DIST_DIR"
