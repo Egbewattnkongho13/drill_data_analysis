@@ -15,7 +15,6 @@ resource "aws_s3_object" "glue_job_wheel" {
   source = abspath("${path.module}/../../../glue/dist/${data.local_file.wheel_filename.content}")
 
   depends_on = [
-    null_resource.run_bundle_script,
     data.local_file.wheel_filename
   ]
 }
