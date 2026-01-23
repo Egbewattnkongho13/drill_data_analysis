@@ -84,3 +84,9 @@ variable "ssm_parameter_arns" {
     error_message = "All elements in ssm_parameter_arns must be valid SSM parameter ARNs."
   }
 }
+
+variable "glue_job_number_of_workers" {
+  description = "The number of workers for the Glue job."
+  type        = number
+  default     = 5
+}

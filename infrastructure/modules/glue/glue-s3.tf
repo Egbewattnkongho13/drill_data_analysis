@@ -1,8 +1,9 @@
 resource "aws_glue_job" "this" {
   name         = var.glue_job_name
   role_arn     = aws_iam_role.glue_job_role.arn
-  glue_version = var.glue_version
-  worker_type  = var.glue_job_worker_type
+  glue_version      = var.glue_version
+  worker_type       = var.glue_job_worker_type
+  number_of_workers = var.glue_job_number_of_workers
 
   default_arguments = {
     "--job-language"             = "python"
