@@ -5,10 +5,19 @@ data "aws_iam_policy_document" "glue_job_policy_doc" {
     effect = "Allow"
     actions = [
       "s3:GetObject",
+      "s3:PutObject",
+      "s3:AbortMultipartUpload",
+      "s3:ListMultipartUploadParts"
     ]
     resources = [
       "arn:aws:s3:::${aws_s3_bucket.glue_assets.id}/*",
     ]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:PutObject"]
+    resources = ["arn:aws:s3:::${aws_s3_bucket.glue_assets.id}"]
   }
 
   statement {
