@@ -7,7 +7,7 @@ resource "aws_glue_job" "this" {
   default_arguments = {
     "--job-language"             = "python"
     "--enable-glue-datacatalog"  = ""
-    "--additional-python-modules" = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_wheel.key}"
+    "--pip-install"              = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_wheel.key}"
   }
 
   command {
