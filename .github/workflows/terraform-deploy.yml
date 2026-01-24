@@ -75,7 +75,7 @@ jobs:
     - name: Wheel Paths Check
       run: |
         echo "Checking for built wheel files..."
-        ls glue/dist/*.whl
+        ls glue/dist/*.zip
         ls glue/dist/wheel_name.txt
 
     - name: Configure AWS Credentials
