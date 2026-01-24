@@ -19,7 +19,7 @@ DIST_DIR="dist"
 
 # extract version from pyproject.toml
 VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d '"' -f2)
-FINAL_WHEEL_NAME="ingestion-bundle-$VERSION.whl"
+FINAL_WHEEL_NAME="ingestion-bundle-$VERSION.zip"
 
 # Clean up previous build artifacts to ensure a fresh build
 echo "Cleaning up previous build artifacts..."
