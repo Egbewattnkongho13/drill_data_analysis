@@ -19,9 +19,8 @@ resource "aws_glue_job" "this" {
   }
 
   command {
-    name            = "glueray"
+    name            = "glueetl"
     python_version  = var.python_version
-    runtime         = var.glue_runtime
     script_location = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_script.key}"
   }
 
