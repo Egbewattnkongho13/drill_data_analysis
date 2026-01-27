@@ -52,16 +52,6 @@ variable "glue_version" {
   }
 }
 
-variable "python_version" {
-  description = "The Python version for the Glue job."
-  type        = string
-  default     = "3.9"
-
-  validation {
-    condition     = contains(["3.9", "3.7", "3.6"], var.python_version)
-    error_message = "The python_version must be one of '3.9', '3.7', or '3.6'."
-  }
-}
 
 variable "ssm_parameter_arns" {
   description = "A list of ARNs for the SSM parameters that the Glue job needs to access."

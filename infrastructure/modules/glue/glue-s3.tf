@@ -12,7 +12,7 @@ resource "aws_glue_job" "this" {
   default_arguments = {
     "--job-language"             = "python"
     "--enable-glue-datacatalog"  = ""
-    "--pip-install"                      = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_wheel.key}"
+    "--extra-py-files"                      = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_wheel.key}"
     "--continuous-log-logGroup"          = aws_cloudwatch_log_group.ingestion-lg.name
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-continuous-log-filter"     = "true"
@@ -20,7 +20,6 @@ resource "aws_glue_job" "this" {
 
   command {
     name            = "glueetl"
-    python_version  = var.python_version
     script_location = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_script.key}"
   }
 
