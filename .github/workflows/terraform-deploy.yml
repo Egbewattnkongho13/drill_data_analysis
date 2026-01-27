@@ -45,10 +45,10 @@ jobs:
         # poetry config virtualenvs.create false
         # poetry config virtualenvs.in-project true
 
-    - name: Build Glue Job Wheels
+    - name: Build Glue Job Package
       run: |
-        chmod +x ./ci/scripts/build-glue-wheels.sh
-        ./ci/scripts/build-glue-wheels.sh
+        chmod +x ./ci/scripts/build-glue-package.sh
+        ./ci/scripts/build-glue-package.sh
 
     - name: Upload Glue Artifacts
       uses: actions/upload-artifact@v6

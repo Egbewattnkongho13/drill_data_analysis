@@ -19,7 +19,8 @@ DIST_DIR="dist"
 
 # extract version from pyproject.toml
 VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d '"' -f2)
-FINAL_WHEEL_NAME="ingestion-bundle-$VERSION.zip"
+PACKAGE_NAME="ingestion-bundle-$VERSION"
+FINAL_WHEEL_NAME="$PACKAGE_NAME.zip"
 
 # Clean up previous build artifacts to ensure a fresh build
 echo "Cleaning up previous build artifacts..."
@@ -27,8 +28,23 @@ rm -rf "$DIST_DIR" *.egg-info
 
 # --- Local Package Build ---
 echo "Building wheel for local 'ingestion' package..."
-poetry install --sync
-poetry build --format wheel -o "$DIST_DIR"
+rm -rf dist
+
+poetry install --only main --sync
+echo "Dependencies installed."
+
+poetry build -f wheel
+echo "Local package built."
+
+poetry run pip install --upgrade -t $PACKAGE_NAME dist/*.whl
+
+echo "Packaging final wheel into zip artifact..."
+cd $PACKAGE_NAME; mkdir -p out; zip -r -q out/$FINAL_WHEEL_NAME . -x '*.pyc'
+echo "Final wheel packaged."
+cd ..
+rm -rf ./$PACKAGE_NAME
+
+
 INGESTION_WHEEL_PATH=$(ls "$DIST_DIR"/glue_ingestion-*.whl | head -n 1)
 if [ -z "$INGESTION_WHEEL_PATH" ]; then
     echo "Error: Ingestion wheel not found in $DIST_DIR"
