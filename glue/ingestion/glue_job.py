@@ -8,11 +8,9 @@ from awsglue.utils import getResolvedOptions # type: ignore
 # Since this script is run after the 'ingestion_package' has been installed
 # in the Glue environment (via --extra-py-files), we can use fully
 # qualified imports from the package.
-from ingestion.config.config import load_config, Settings
-from ingestion.sinks.s3_sink import S3Sink
-from ingestion.sinks.local_sink import LocalSink
-from ingestion.handlers.kaggle_datahandler import KaggleDataHandler
-
+from ingestion.config import load_config, Settings
+from ingestion.sinks import S3Sink, LocalSink
+from ingestion.handlers import KaggleDataHandler
 
 # Configure logging
 logger = logging.getLogger(__name__)
