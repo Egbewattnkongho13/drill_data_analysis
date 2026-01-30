@@ -7,6 +7,8 @@ from awsglue.utils import getResolvedOptions # type: ignore
 
 # Since this script is run after the 'ingestion_package' has been installed
 # in the Glue environment (via --extra-py-files), we can use fully
+import pip # type: ignore
+pip.main(['list'])  # type: ignore
 # qualified imports from the package.
 from ingestion.config import load_config, Settings
 from ingestion.sinks import S3Sink, LocalSink

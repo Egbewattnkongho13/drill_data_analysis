@@ -5,6 +5,7 @@ description = "AWS Glue job for ingesting data from Kaggle."
 authors = ["Egbewatt Nkongho <egbewattnkonghob@gmail.com>"]
 readme = "README.md"
 packages = [{ include = "ingestion" }]
+include = ["README.md"]
 
 [tool.poetry.dependencies]
 python = "^3.12"

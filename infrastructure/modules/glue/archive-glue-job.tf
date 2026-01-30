@@ -1,5 +1,5 @@
 data "local_file" "wheel_filename" {
-  filename = abspath("${path.module}/../../../glue/dist/wheel_name.txt")
+  filename = abspath("${path.module}/../../../glue/dist/package_name.txt")
 }
 
 resource "aws_s3_object" "glue_job_script" {

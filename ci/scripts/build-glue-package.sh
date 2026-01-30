@@ -42,6 +42,7 @@ echo "Packaging final package into zip artifact..."
 INGESTION_WHEEL_PATH=$(ls "$DIST_DIR"/glue_ingestion-*.whl | head -n 1)
 mv $INGESTION_WHEEL_PATH dist/$FINAL_PACKAGE_NAME
 zip dist/$FINAL_PACKAGE_NAME pyproject.toml
+zip -r dist/$FINAL_PACKAGE_NAME README.md
 echo "Final package packaged."
 # rm -rf ./$PACKAGE_NAME
 # rm -rf dist/*.whl
