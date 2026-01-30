@@ -51,3 +51,4 @@ lambdas/ingestion/ingest/config/dev.yml
 
 # SAM template for local testing (IAC is managed by Terraform)
 lambdas/ingestion/template.yaml
+ingestion-bundle-*
