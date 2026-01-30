@@ -76,7 +76,7 @@ jobs:
       run: |
         echo "Checking for built wheel files..."
         ls glue/dist/*.zip
-        ls glue/dist/wheel_name.txt
+        ls glue/dist/package_name.txt
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v3
