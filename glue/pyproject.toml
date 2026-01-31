@@ -8,17 +8,19 @@ packages = [{ include = "ingestion" }]
 include = ["README.md"]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10"
 requests = "^2.32.4"
 boto3 = "^1.39.15"
 omegaconf = "^2.3.0"
 pydantic = "^2.11.7"
 kaggle = "^1.5.12"
 pyspark = "^3.5.1" # Essential for AWS Glue
+pyyaml = "^6.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
 pytest = "^8.4.1"
+ruff = "^0.14.14"
 
 [build-system]
 requires = ["poetry-core"]

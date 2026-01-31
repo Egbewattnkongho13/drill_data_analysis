@@ -36,16 +36,17 @@ echo "Dependencies installed."
 poetry build -f wheel
 echo "Local package built."
 
-# poetry run pip install --upgrade -t $PACKAGE_NAME dist/*.whl
+poetry run pip install -t $PACKAGE_NAME --upgrade dist/*.whl
+INGESTION_WHEEL_PATH=$(ls "$DIST_DIR"/glue_ingestion-*.whl | head -n 1)
 
 echo "Packaging final package into zip artifact..."
-INGESTION_WHEEL_PATH=$(ls "$DIST_DIR"/glue_ingestion-*.whl | head -n 1)
-mv $INGESTION_WHEEL_PATH dist/$FINAL_PACKAGE_NAME
-zip dist/$FINAL_PACKAGE_NAME pyproject.toml
-zip -r dist/$FINAL_PACKAGE_NAME README.md
+cd $PACKAGE_NAME
+zip -q -r ../dist/$FINAL_PACKAGE_NAME . \ -x "*.pyc" "*.pyo" "__pycache__/*"
+zip -u ../dist/$FINAL_PACKAGE_NAME ../pyproject.toml
 echo "Final package packaged."
-# rm -rf ./$PACKAGE_NAME
-# rm -rf dist/*.whl
+cd ..
+rm -rf ./$PACKAGE_NAME
+rm -rf $INGESTION_WHEEL_PATH
 
 INGESTION_ZIP_PATH=$(ls "$DIST_DIR"/ingestion-bundle-*.zip | head -n 1)
 if [ -z "$INGESTION_ZIP_PATH" ]; then
