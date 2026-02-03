@@ -18,7 +18,7 @@ cd "$GLUE_DIR" # Glue directory as working directory
 DIST_DIR="dist"
 
 # extract version from pyproject.toml
-VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d '"' -f2)
+VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d '"' -f2 | tr -d '\r\n')
 PACKAGE_NAME="ingestion-bundle-$VERSION"
 FINAL_PACKAGE_NAME="$PACKAGE_NAME.zip"
 

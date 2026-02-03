@@ -30,7 +30,7 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # If on the main branch, just print the current version and exit.
 if [ "$CURRENT_BRANCH" == "main" ]; then
-    grep 'version = ' "$LAMBDA_PATH/pyproject.toml" | sed -E 's/.*= "(.*)"/\1/'
+    grep 'version = ' "$LAMBDA_PATH/pyproject.toml" | sed -E 's/.*= "(.*)"/\1/' | tr -d '\r\n'
     exit 0
 fi
 
@@ -39,8 +39,8 @@ fi
 # On a feature branch, first check if a version change has been made compared to main.
 
 # Use '|| true' to prevent the script from exiting if grep finds no match.
-pyproject_version_new=$(git diff main -- "$LAMBDA_PATH/pyproject.toml" | grep '^+version' | sed -E 's/.*= "(.*)"/\1/' || true)
-changelog_version_new=$(git diff main -- "$LAMBDA_PATH/changelog.md" | grep '^+## \[' | head -n 1 | sed -E 's/\+## \[(v?)(.*)\].*/\2/' || true)
+pyproject_version_new=$(git diff main -- "$LAMBDA_PATH/pyproject.toml" | grep '^+version' | sed -E 's/.*= "(.*)"/\1/' | tr -d '\r\n' || true)
+changelog_version_new=$(git diff main -- "$LAMBDA_PATH/changelog.md" | grep '^+## \[' | head -n 1 | sed -E 's/\+## \[(v?)(.*\]).*/\2/' | tr -d '\r\n' || true)
 
 # If a new version is found in BOTH files, check if they match.
 if [ -n "$pyproject_version_new" ] && [ -n "$changelog_version_new" ]; then
@@ -67,4 +67,4 @@ fi
 
 # If no new version change was detected, just print the existing version on the branch.
 # This allows commits without version changes to pass CI without error.
-grep 'version = ' "$LAMBDA_PATH/pyproject.toml" | sed -E 's/.*= "(.*)"/\1/'
+grep 'version = ' "$LAMBDA_PATH/pyproject.toml" | sed -E 's/.*= "(.*)"/\1/' | tr -d '\r\n'
