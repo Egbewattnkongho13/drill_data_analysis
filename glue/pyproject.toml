@@ -8,7 +8,7 @@ packages = [{ include = "ingestion" }]
 include = ["README.md"]
 
 [tool.poetry.dependencies]
-python = "3.10.12"
+python = "~3.10"
 requests = "^2.32.4"
 boto3 = "^1.39.15"
 omegaconf = "^2.3.0"
