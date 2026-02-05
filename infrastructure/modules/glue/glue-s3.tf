@@ -16,7 +16,7 @@ resource "aws_glue_job" "this" {
     "--TempDir"                  = "s3://${aws_s3_bucket.glue_assets.id}/temp/"
     "--enable-glue-datacatalog"  = ""
     "--extra-py-files"           = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_wheel.key}"
-    "--additional-python-modules" = "omegaconf==2.3.0,pyyaml==6.0.1,requests==2.28.0,pydantic==2.11.7"
+    "--additional-python-modules" = "omegaconf==2.3.0,pyyaml==6.0.1,requests==2.28.0,pydantic==2.11.7,kaggle==1.5.12,boto3==1.39.15"
     "--continuous-log-logGroup"  = aws_cloudwatch_log_group.ingestion-lg.name
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-continuous-log-filter"     = "true"
