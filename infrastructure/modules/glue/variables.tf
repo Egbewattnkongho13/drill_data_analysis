@@ -65,3 +65,9 @@ variable "glue_job_number_of_workers" {
   type        = number
   default     = 5
 }
+
+variable "environment" {
+  description = "The environment name (dev, staging, prod)."
+  type        = string
+  default     = "dev"
+}

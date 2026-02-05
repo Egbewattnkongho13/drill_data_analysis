@@ -11,6 +11,7 @@ resource "aws_glue_job" "this" {
 
   default_arguments = {
     "--job-language"             = "python"
+    "--ENVIRONMENT"              = var.environment
     "--enable-metrics"           = "true"      
     "--TempDir"                  = "s3://${aws_s3_bucket.glue_assets.id}/temp/"
     "--enable-glue-datacatalog"  = ""
