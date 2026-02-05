@@ -1,71 +1,12 @@
-import zipfile
-import tempfile
-import shutil
 import sys
 import os
-import logging
-
-# Configure logging for early script execution
-# Ensure this logger is not re-configured later if it's already set up
-# from the current module's logger setup.
-_early_logger = logging.getLogger(__name__)
-if not _early_logger.handlers:
-    _early_logger.setLevel(logging.INFO)
-    _early_handler = logging.StreamHandler()
-    _early_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    _early_handler.setFormatter(_early_formatter)
-    _early_logger.addHandler(_early_handler)
-
-# --- Workaround for Pydantic C-extension in AWS Glue ---
-# Detect if running in AWS Glue environment
-is_glue_env = os.environ.get("GLUE_JOB_NAME") is not None or \
-              os.environ.get("AWS_REGION") is not None
-
-if is_glue_env:
-    _early_logger.info("Detected AWS Glue environment. Attempting to unpack C-extensions.")
-    temp_dir = None
-    try:
-        # Find the job bundle zip in sys.path
-        found_bundle_zip = None
-        for path_entry in sys.path:
-            if zipfile.is_zipfile(path_entry) and "ingestion-bundle" in path_entry:
-                found_bundle_zip = path_entry
-                break
-        
-        if found_bundle_zip:
-            _early_logger.info(f"Found job bundle zip: {found_bundle_zip}")
-            # Create a temporary directory in /tmp (the only writable location in Glue)
-            temp_dir = tempfile.mkdtemp(dir="/tmp")
-            with zipfile.ZipFile(found_bundle_zip, 'r') as zip_ref:
-                zip_ref.extractall(temp_dir)
-            
-            # Insert this temporary directory at the beginning of sys.path
-            sys.path.insert(0, temp_dir)
-            _early_logger.info(f"Unpacked {found_bundle_zip} to {temp_dir} and added to sys.path.")
-
-            # It's good practice to also update LD_LIBRARY_PATH for native libs
-            current_ld_library_path = os.environ.get("LD_LIBRARY_PATH", "")
-            if temp_dir not in current_ld_library_path:
-                os.environ["LD_LIBRARY_PATH"] = f"{temp_dir}:{current_ld_library_path}"
-                _early_logger.info(f"Updated LD_LIBRARY_PATH to include {temp_dir}")
-        else:
-            _early_logger.warning("Could not find 'ingestion-bundle' zip in sys.path. C-extensions might not be unpacked.")
-    except Exception as e:
-        _early_logger.error(f"Error during C-extension unpacking in Glue: {e}")
-        # Clean up temp_dir if an error occurred during unpacking, to avoid leaving junk
-        if temp_dir and os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir)
-        # Re-raise to prevent job from continuing with a broken environment
-        raise
-
+import logging       
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext  # type: ignore
 from awsglue.utils import getResolvedOptions # type: ignore
 
 # Since this script is run after the 'ingestion_package' has been installed
-# in the Glue environment (via --extra-py-files), we can use fully
-import pip # type: ignore
-pip.main(['list'])  # type: ignore
+# in the Glue environment (via --pip-install), we can use fully
 # qualified imports from the package.
 from ingestion.config import load_config, Settings
 from ingestion.sinks import S3Sink, LocalSink

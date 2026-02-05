@@ -1,9 +1,8 @@
 locals {
-  # Find the zip file automatically in the dist directory.
-  # This assumes there is only one .zip file.
-  bundle_dir      = abspath("${path.module}/../../../glue/dist")
-  bundle_filename = element(tolist(fileset(local.bundle_dir, "*.zip")), 0)
-  bundle_file     = "${local.bundle_dir}/${local.bundle_filename}"
+  # Find the wheel file automatically in the dist directory
+  wheel_dir      = abspath("${path.module}/../../../glue/dist")
+  wheel_filename = element(tolist(fileset(local.wheel_dir, "*.whl")), 0)
+  wheel_file     = "${local.wheel_dir}/${local.wheel_filename}"
 }
 
 resource "aws_s3_object" "glue_job_script" {
@@ -14,9 +13,9 @@ resource "aws_s3_object" "glue_job_script" {
   etag   = filemd5(var.glue_job_script_local_path)
 }
 
-resource "aws_s3_object" "glue_job_bundle" {
+resource "aws_s3_object" "glue_job_wheel" {
   bucket = aws_s3_bucket.glue_assets.id
-  key    = local.bundle_filename
-  source = local.bundle_file
-  etag   = filemd5(local.bundle_file)
+  key    = local.wheel_filename
+  source = local.wheel_file
+  etag   = filemd5(local.wheel_file)
 }

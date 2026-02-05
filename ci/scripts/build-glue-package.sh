@@ -1,14 +1,13 @@
 #!/bin/bash
-# This script packages the 'ingestion' module and its external dependencies
-# into a single, self-contained zip artifact for production Glue jobs.
+# This script builds the ingestion wheel for AWS Glue.
+# Glue will handle dependency resolution via --pip-install argument.
 
 # Exit immediately if a command exits with a non-zero status.
 set -euo pipefail
 
-echo "--- Starting 'gold standard' build process for Glue package ---"
+echo "--- Building Glue Ingestion Wheel ---"
 
-# --- Setup ---
-# Get the directory where this script is located to run commands from the correct context.
+# Setup
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd "$SCRIPT_DIR"
 
@@ -17,57 +16,45 @@ GLUE_DIR="../../glue"
 cd "$GLUE_DIR" # Glue directory as working directory
 DIST_DIR="dist"
 
-# extract version from pyproject.toml
+# Extract version from pyproject.toml
 VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d '"' -f2 | tr -d '\r\n')
-PACKAGE_NAME="ingestion-bundle-$VERSION"
-FINAL_PACKAGE_NAME="$PACKAGE_NAME.zip"
+WHEEL_NAME="glue_ingestion-${VERSION}-py3-none-any.whl"
 
-# Clean up previous build artifacts to ensure a fresh build
+# Clean up previous build artifacts
 echo "Cleaning up previous build artifacts..."
-rm -rf "$DIST_DIR" *.egg-info
+rm -rf "$DIST_DIR" *.egg-info build/
 
 # --- Local Package Build ---
 echo "Building wheel for local 'ingestion' package..."
 rm -rf dist
 
 poetry install --only main --sync
-echo "Dependencies installed."
 
-poetry build -f wheel
-echo "Local package built."
+echo "Building wheel..."
+poetry build -f wheel -o "$DIST_DIR"
+echo "Wheel built successfully."
 
-poetry run pip install -t $PACKAGE_NAME --upgrade dist/*.whl
-INGESTION_WHEEL_PATH=$(ls "$DIST_DIR"/glue_ingestion-*.whl | head -n 1)
-
-echo "Packaging final package into zip artifact..."
-cd $PACKAGE_NAME
-zip -q -r ../dist/$FINAL_PACKAGE_NAME . \ -x "*.pyc" "*.pyo" "__pycache__/*"
-zip -u ../dist/$FINAL_PACKAGE_NAME ../pyproject.toml
-echo "Final package packaged."
-cd ..
-rm -rf ./$PACKAGE_NAME
-rm -rf $INGESTION_WHEEL_PATH
-
-INGESTION_ZIP_PATH=$(ls "$DIST_DIR"/ingestion-bundle-*.zip | head -n 1)
-if [ -z "$INGESTION_ZIP_PATH" ]; then
-    echo "Error: Ingestion zip not found in $DIST_DIR"
+# Verify wheel was created
+if [ ! -f "$DIST_DIR/$WHEEL_NAME" ]; then
+    echo "Error: Wheel not found at $DIST_DIR/$WHEEL_NAME"
     exit 1
 fi
-echo "Ingestion zip built at: $DIST_DIR/$FINAL_PACKAGE_NAME"
 
 # Write the wheel name to a file for Terraform to read
-echo -n "$FINAL_PACKAGE_NAME" > "$DIST_DIR/package_name.txt"
+echo -n "$WHEEL_NAME" > "$DIST_DIR/wheel_name.txt"
 
-# --- Final Artifact Creation ---
-echo "Checking final package artifact: $FINAL_PACKAGE_NAME..."
 
 echo ""
-echo "--- Build successful! ---"
-echo "Package created at: glue/$DIST_DIR/$FINAL_PACKAGE_NAME"
+echo "=== Build successful! ==="
+echo "Wheel created at: glue/$DIST_DIR/$WHEEL_NAME"
+echo ""
+echo "Next step:"
+echo "Upload to S3 and configure Glue job with:"
+echo "  --pip-install s3://<your-bucket>/path/to/$WHEEL_NAME"
 echo ""
 echo "Next Steps:"
-echo "1. Upload 'glue/$DIST_DIR/$FINAL_PACKAGE_NAME' to an S3 bucket."
+echo "1. Upload 'glue/$DIST_DIR/$WHEEL_NAME' to an S3 bucket."
 echo "2. For Glue Ray jobs (like the one configured in Terraform), use:"
-echo "   --pip-install s3://<your-bucket>/path/to/$FINAL_PACKAGE_NAME"
+echo "   --pip-install s3://<your-bucket>/path/to/$WHEEL_NAME"
 echo "3. For standard PySpark jobs, use:"
-echo "   --extra-py-files s3://<your-bucket>/path/to/$FINAL_PACKAGE_NAME"
+echo "   --extra-py-files s3://<your-bucket>/path/to/$WHEEL_NAME"

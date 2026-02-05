@@ -11,15 +11,19 @@ resource "aws_glue_job" "this" {
 
   default_arguments = {
     "--job-language"             = "python"
+    "--enable-metrics"           = "true"      
+    "--TempDir"                  = "s3://${aws_s3_bucket.glue_assets.id}/temp/"
     "--enable-glue-datacatalog"  = ""
-    "--extra-py-files"                      = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_bundle.key}"
-    "--continuous-log-logGroup"          = aws_cloudwatch_log_group.ingestion-lg.name
+    "--extra-py-files"           = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_wheel.key}"
+    "--additional-python-modules" = "omegaconf==2.3.0,pyyaml==6.0.1,requests==2.28.0,pydantic==2.11.7"
+    "--continuous-log-logGroup"  = aws_cloudwatch_log_group.ingestion-lg.name
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-continuous-log-filter"     = "true"
   }
 
   command {
     name            = "glueetl"
+    python_version  = "3"
     script_location = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_script.key}"
   }
 
@@ -29,6 +33,6 @@ resource "aws_glue_job" "this" {
 
   depends_on = [
     aws_s3_object.glue_job_script,
-    aws_s3_object.glue_job_bundle,
+    aws_s3_object.glue_job_wheel,
   ]
 }
