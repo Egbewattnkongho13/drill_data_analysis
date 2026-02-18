@@ -1,5 +1,5 @@
 from ingestion.handlers.kaggle_datahandler import KaggleDataHandler
 
-all = [
+__all__ = [
     "KaggleDataHandler",
 ]

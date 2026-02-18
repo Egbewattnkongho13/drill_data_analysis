@@ -1,10 +1,12 @@
 import logging
-from .base.sink import Sink
 import os
+
+from .base.sink import Sink
 
 # Configure logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
 
 class LocalSink(Sink):
     """

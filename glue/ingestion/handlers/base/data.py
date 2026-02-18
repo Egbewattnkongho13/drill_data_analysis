@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from ...sinks.base.sink import Sink
 
 

@@ -1,36 +1,41 @@
-import sys
+import logging
 import os
-import logging       
-from pyspark.context import SparkContext
+import sys
+
 from awsglue.context import GlueContext  # type: ignore
-from awsglue.utils import getResolvedOptions # type: ignore
+from awsglue.utils import getResolvedOptions  # type: ignore
+from pyspark.context import SparkContext
 
 # Since this script is run after the 'ingestion_package' has been installed
 # in the Glue environment (via --pip-install), we can use fully
 # qualified imports from the package.
-from ingestion.config import load_config, Settings
-from ingestion.sinks import S3Sink, LocalSink
+from ingestion.config import Settings, load_config
 from ingestion.handlers import KaggleDataHandler
+from ingestion.sinks import LocalSink, S3Sink
 
 # Configure logging (main logger, separate from early_logger if needed, or unify)
-logger = logging.getLogger(__name__) # Re-using __name__ for the main script logger
+logger = logging.getLogger(__name__)  # Re-using __name__ for the main script logger
 logger.setLevel(logging.INFO)
 # Ensure the main logger has a handler if the early logger didn't set one for __main__
 if not logger.handlers:
     handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
 
 def run_job():
     # Initialize GlueContext
-    args = getResolvedOptions(sys.argv, ['JOB_NAME', 'ENVIRONMENT'])
-    
+    args = getResolvedOptions(sys.argv, ["JOB_NAME", "ENVIRONMENT"])
+
     sc = SparkContext()
     glueContext = GlueContext(sc)
-    spark = glueContext.spark_session
-    logger.info(f"Initialized Glue job '{args['JOB_NAME']}' in environment '{args['ENVIRONMENT']}'")
+    spark = glueContext.spark_session  # Keep reference for potential Spark operations
+    logger.info(
+        f"Initialized Glue job '{args['JOB_NAME']}' in environment '{args['ENVIRONMENT']}'"
+    )
 
     # Set environment variable for config loading
     os.environ["ENVIRONMENT"] = args.get("ENVIRONMENT", "dev")
@@ -52,7 +57,7 @@ def run_job():
         else:
             logger.error("S3 sink is configured but bucket_name is missing. Exiting.")
             sys.exit(1)
-            
+
     elif settings.sink.type == "local":
         sink = LocalSink()
         if hasattr(settings.sink, "path") and settings.sink.path:
@@ -61,7 +66,9 @@ def run_job():
             logger.error("Local sink is configured but path is missing. Exiting.")
             sys.exit(1)
     else:
-        logger.error(f"Unknown or unsupported sink type: {settings.sink.type}. Exiting.")
+        logger.error(
+            f"Unknown or unsupported sink type: {settings.sink.type}. Exiting."
+        )
         sys.exit(1)
 
     if not sink:
@@ -75,14 +82,18 @@ def run_job():
 
         if kaggle_username and kaggle_api_key:
             logger.info("Initializing KaggleDataHandler...")
-            
+
             all_urls = settings.kaggle_data_source.urls
             target_urls = []
             if len(all_urls) >= 2:
-                logger.info(f"Found {len(all_urls)} URLs. Selecting the second URL for processing.")
-                target_urls = [str(all_urls[1])] # Get the second URL (index 1)
+                logger.info(
+                    f"Found {len(all_urls)} URLs. Selecting the second URL for processing."
+                )
+                target_urls = [str(all_urls[1])]  # Get the second URL (index 1)
             elif all_urls:
-                logger.warning(f"Only one URL found: {all_urls[0]}. Processing the first URL as a fallback.")
+                logger.warning(
+                    f"Only one URL found: {all_urls[0]}. Processing the first URL as a fallback."
+                )
                 target_urls = [str(all_urls[0])]
             else:
                 logger.warning("No Kaggle URLs found in the configuration.")
@@ -95,11 +106,14 @@ def run_job():
                 )
                 kaggle_handler.download(sink, destination_path)
         else:
-            logger.warning("KAGGLE_USERNAME or KAGGLE_KEY environment variables not set. Skipping Kaggle download.")
+            logger.warning(
+                "KAGGLE_USERNAME or KAGGLE_KEY environment variables not set. Skipping Kaggle download."
+            )
     else:
         logger.info("Kaggle data source is not configured in settings. Skipping.")
 
     logger.info("Glue ingestion job finished.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run_job()

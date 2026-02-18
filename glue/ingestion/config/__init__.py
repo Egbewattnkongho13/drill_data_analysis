@@ -1,6 +1,6 @@
-from ingestion.config.config import load_config, Settings
+from ingestion.config.config import Settings, load_config
 
-all = [
+__all__ = [
     load_config,
     Settings,
 ]
