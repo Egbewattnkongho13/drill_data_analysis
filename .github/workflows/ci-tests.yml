@@ -32,11 +32,11 @@ jobs:
             - name: Install Dependencies
               run: |
                   chmod +x ./ci/scripts/execute-lambda-command.sh
-                  ./ci/scripts/execute-lambda-command.sh ingestion poetry install --no-interaction
+                  ./ci/scripts/execute-lambda-command.sh ingestion make install
 
             - name: Run Tests
               run: |
-                ./ci/scripts/execute-lambda-command.sh ingestion poetry run python -m pytest tests/
+                ./ci/scripts/execute-lambda-command.sh ingestion make test
 
     test-silver-transform-lambda:
         name: Test Silver Transformation Lambda
@@ -61,11 +61,11 @@ jobs:
             - name: Install Dependencies
               run: |
                 chmod +x ./ci/scripts/execute-lambda-command.sh
-                ./ci/scripts/execute-lambda-command.sh silver-transform poetry install --no-interaction
+                ./ci/scripts/execute-lambda-command.sh silver-transform make install
 
             - name: Run Tests
               run: |
-                ./ci/scripts/execute-lambda-command.sh silver-transform poetry run python -m pytest tests/
+                ./ci/scripts/execute-lambda-command.sh silver-transform make test
 
     test-gold-transform-lambda:
         name: Test Gold Transformation Lambda
@@ -90,9 +90,9 @@ jobs:
             - name: Install Dependencies
               run: |
                 chmod +x ./ci/scripts/execute-lambda-command.sh
-                ./ci/scripts/execute-lambda-command.sh gold-transform poetry install --no-interaction 
+                ./ci/scripts/execute-lambda-command.sh gold-transform make install
 
             - name: Run Tests
               run: |
-                ./ci/scripts/execute-lambda-command.sh gold-transform poetry run python -m pytest tests/
+                ./ci/scripts/execute-lambda-command.sh gold-transform make test
                 

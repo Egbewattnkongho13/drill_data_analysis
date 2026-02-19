@@ -1,6 +1,10 @@
 # Makefile for the ingestion lambda
 
-.PHONY: build test
+.PHONY: build test install
+
+# Install dependencies
+install: ## Install dependencies using Poetry
+	poetry install --no-root --with dev
 
 # Build the Docker image
 build:
@@ -10,4 +14,4 @@ build:
 # Run tests
 test:
 	poetry install --no-root --with dev
-	poetry run pytest
+	poetry run pytest tests/
