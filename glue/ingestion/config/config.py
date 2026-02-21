@@ -77,7 +77,7 @@ def load_config(config_path: str = None) -> Settings:
 
     # --- Cloud Environment: Attempt to load from AWS Parameter Store ---
     try:
-        # Check for AWS credentials with a short timeout to fail fast
+        # Check for AWS credentials by making a simple STS call. This will throw an error if credentials are missing or invalid. 
         boto3.client("sts", region_name="us-east-1").get_caller_identity()
 
         logger.info(
