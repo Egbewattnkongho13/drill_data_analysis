@@ -5,15 +5,23 @@
 # Exit immediately if a command exits with a non-zero status.
 set -euo pipefail
 
+# Clean up function
+cleanup() {
+    # Ensure we return to the original directory
+    popd || exit 1
+}
+
 echo "--- Building Glue Ingestion Wheel ---"
+
+trap cleanup EXIT
 
 # Setup
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-cd "$SCRIPT_DIR"
+pushd "$SCRIPT_DIR" > /dev/null
 
 # Define build directories
 GLUE_DIR="../../glue"
-cd "$GLUE_DIR" # Glue directory as working directory
+pushd "$GLUE_DIR" > /dev/null # Glue directory as working directory
 DIST_DIR="dist"
 
 # Extract version from pyproject.toml
@@ -58,3 +66,6 @@ echo "2. For Glue Ray jobs (like the one configured in Terraform), use:"
 echo "   --pip-install s3://<your-bucket>/path/to/$WHEEL_NAME"
 echo "3. For standard PySpark jobs, use:"
 echo "   --extra-py-files s3://<your-bucket>/path/to/$WHEEL_NAME"
+
+#Return to original directory after build
+popd > /dev/null
