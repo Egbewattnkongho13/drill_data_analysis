@@ -36,7 +36,7 @@ class S3Sink(Sink):
             max_pool_connections=50,
         )
 
-        self.s3_client = boto3.client("s3", config=config)
+        self.s3_client = boto3.client("s3", config=config, region_name="us-east-1")  # Specify region if needed
         logger.info(f"Initialized S3Sink for bucket: {self.bucket_name}")
 
     def _upload_with_retry(self, data: bytes, destination: str, max_retries: int = 5) -> bool:
@@ -120,9 +120,10 @@ class S3Sink(Sink):
                     f"Object not found. Proceeding with upload to s3://{self.bucket_name}/{destination}"
                 )
             else:
-                # Some other error occurred
-                logger.error(f"Error checking for object existence: {e}")
-                return  # Do not proceed if we can't verify existence
+                # Some other error occurred (like 403 Forbidden)
+                error_msg = f"Error checking for object existence: {e}"
+                logger.error(error_msg)
+                raise  # Re-raise the exception so the job fails properly
 
         try:
             # Upload with retry logic
@@ -141,4 +142,5 @@ class S3Sink(Sink):
 
         except Exception as e:
             logger.error(f"Error saving data to S3: {e}")
+            raise  # Re-raise the exception so the job fails properly
 
