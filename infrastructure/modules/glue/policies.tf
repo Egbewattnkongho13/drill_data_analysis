@@ -20,6 +20,29 @@ data "aws_iam_policy_document" "glue_job_policy_doc" {
     resources = ["arn:aws:s3:::${aws_s3_bucket.glue_assets.id}"]
   }
 
+  # S3 permissions for datalake bronze bucket
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:HeadObject"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.bronze_bucket_name}/*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.bronze_bucket_name}"
+    ]
+  }
+
   statement {
     effect = "Allow"
     actions = [
