@@ -80,4 +80,5 @@ module "glue_job" {
   glue_job_script_local_path = "${path.module}/../../../glue/glue_job.py"
   glue_job_script_s3_key     = "scripts/glue_job.py"
   ssm_parameter_arns         = values(module.ssm_parameters.parameter_arns)
+  bronze_bucket_name         = module.data_lake.bronze_bucket_name
 }
