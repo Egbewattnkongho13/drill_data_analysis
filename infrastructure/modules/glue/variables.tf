@@ -71,3 +71,8 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "bronze_bucket_name" {
+  description = "The name of the bronze S3 bucket for data ingestion."
+  type        = string
+}
