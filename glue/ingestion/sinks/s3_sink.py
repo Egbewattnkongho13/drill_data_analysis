@@ -1,11 +1,11 @@
 import logging
 import mimetypes
-import time
 import ssl
+import time
 
 import boto3
-from botocore.exceptions import ClientError, ConnectionClosedError, SSLError
 from botocore.config import Config
+from botocore.exceptions import ClientError, ConnectionClosedError, SSLError
 
 from .base.sink import Sink
 
