@@ -50,14 +50,14 @@ clean: ## Clean build artifacts
 lint: ## Run code linting
 	poetry run ruff check --fix .
 
-.PHONY: lint-check
+.PHONY: glue-lint-check
 lint-check: ## Check code linting without fixing
 	poetry run ruff check .
 	
 # Format the code
 .PHONY: format
 format: ## Format the code
-	ruff check --select I --fix .
+	poetry run ruff check --select I --fix .
 	poetry run ruff format .
 
 # Validate configuration
