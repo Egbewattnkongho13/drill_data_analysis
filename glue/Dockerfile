@@ -9,9 +9,12 @@ FROM public.ecr.aws/glue/aws-glue-libs:glue_libs_4.0.0_image_01 AS base
 USER root
 
 # Install Poetry for package management
-RUN python3 -m pip install --upgrade pip && \
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python3 -m pip install --upgrade pip && \
     python3 -m pip install poetry==1.8.0 --prefix=/usr/local && \
     ln -s /usr/local/bin/poetry /usr/bin/poetry
+
+WORKDIR /app
 
 # Copy glue files (build context is root directory)
 # This copies all necessary files for building the package
@@ -29,7 +32,6 @@ RUN sed -i 's/\r$//' /app/ci/scripts/build-glue-package.sh && \
     chmod +x /app/ci/scripts/build-glue-package.sh
 
 # Build the package using the script
-WORKDIR /app/glue
 RUN bash /app/ci/scripts/build-glue-package.sh
 
 # STAGE 2: Create the final image for running the Glue job
