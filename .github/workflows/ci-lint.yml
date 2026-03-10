@@ -33,5 +33,5 @@ jobs:
       - name: Lint Glue
         run: |
           cd glue
-          poetry install
+          make install
           make lint-check
