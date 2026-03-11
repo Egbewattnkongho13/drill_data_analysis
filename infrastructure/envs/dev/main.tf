@@ -71,3 +71,14 @@ module "data_lake" {
   account_id    = data.aws_caller_identity.current.account_id
   region        = var.region
 }
+
+# Setup Glue Job
+module "glue_job" {
+  source = "../../modules/glue"
+
+  glue_job_name              = "drill-data-ingestion-job"
+  glue_job_script_local_path = "${path.module}/../../../glue/glue_job.py"
+  glue_job_script_s3_key     = "scripts/glue_job.py"
+  ssm_parameter_arns         = values(module.ssm_parameters.parameter_arns)
+  bronze_bucket_name         = module.data_lake.bronze_bucket_name
+}

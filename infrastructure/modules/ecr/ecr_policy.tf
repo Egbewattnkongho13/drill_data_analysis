@@ -16,7 +16,7 @@ resource "aws_ecr_repository_policy" "ecr_repo_policy" {
         ]
         Condition = {
           ArnLike = {
-            "aws:SourceArn" = "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:*"
+            "aws:SourceArn" = "arn:aws:lambda:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:function:*"
           }
         }
       },
