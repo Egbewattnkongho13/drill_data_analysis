@@ -1,0 +1,8 @@
+CRAWLER_URLS:
+  - https://www.ux.uis.no/~atunkiel/file_list.html
+
+
+KAGGLE_URLS:
+  - https://www.kaggle.com/datasets/lamyalbert/volve-production-data
+  - https://www.kaggle.com/datasets/afrniomelo/3w-dataset
+  - https://www.kaggle.com/datasets/ruslanzalevskikh/oil-well/data

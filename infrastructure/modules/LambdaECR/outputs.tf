@@ -14,3 +14,8 @@ output "invoke_arn_of_lambda_function" {
   description = "Invoke ARN of the Lambda function created from the ECR image"
 
 }
+
+output "lambda_role_arn" {
+  value = aws_lambda_function.lambbda_from_ecr.role
+  description = "ARN of the IAM role associated with the Lambda function"
+}

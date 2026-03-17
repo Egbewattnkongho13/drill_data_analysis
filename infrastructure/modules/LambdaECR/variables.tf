@@ -1,13 +1,11 @@
-variable "name" {
-  description = "The name of the IAM role for the Lambda function"
+variable "lambda_role_arn" {
+  description = "The ARN of the IAM role for the Lambda function"
   type        = string
-  default     = "lambda_role"
 
   validation {
-    condition     = length(var.name) > 0
-    error_message = "The name variable must not be empty."
+    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/.*$", var.lambda_role_arn))
+    error_message = "The lambda_role_arn must be a valid IAM role ARN."
   }
-
 }
 
 variable "lambda_name" {
@@ -50,4 +48,16 @@ variable "ecr_repository_arn" {
     condition     = can(regex("^arn:aws:ecr:[a-z0-9-]+:[0-9]{12}:repository/[a-z0-9_.-]+$", var.ecr_repository_arn))
     error_message = "The ecr_repository_arn must be a valid ECR repository ARN."
   }
+}
+
+variable "ssm_parameter_arns" {
+  description = "A list of SSM parameter ARNs that the Lambda function needs access to."
+  type        = list(string)
+  default     = []
+}
+
+variable "timeout" {
+  description = "The timeout for the Lambda function in seconds."
+  type        = number
+  default     = 30
 }

@@ -1,5 +1,5 @@
 # check that each lambda has an updated valid version
-name: Lint Scrapper
+name: Lint
 
 on:
   pull_request:
@@ -19,7 +19,19 @@ jobs:
         with:
           python-version: 3.12
 
-      - name: Lint
+      - name: Install and Configure Poetry
+        run: |
+          pip install poetry==1.8.0
+        # poetry config virtualenvs.create false
+        # poetry config virtualenvs.in-project true
+
+      - name: Lint Lambdas
         run: |
           chmod +x ./ci/scripts/lint-all-lambdas.sh
           ./ci/scripts/lint-all-lambdas.sh
+
+      - name: Lint Glue
+        run: |
+          cd glue
+          make install
+          make glue-lint-check
