@@ -11,7 +11,7 @@ ingestion-install: ## Install dependencies for ingestion lambda
 ingestion-build: ## Build the ingestion lambda Docker image
 	@echo "Docker image built for ingestion lambda"
 	poetry install --no-root
-	docker build -t ingestion .
+	docker build -t ingestionlambda:ingestion-lambda-v1 .
 
 # Run tests
 ingestion-test: ## Run tests for ingestion lambda
