@@ -22,16 +22,28 @@ The ingestion lambda is part of a serverless data pipeline that ingests raw data
 
 ## Architecture
 
-```
-┌─────────────┐    ┌──────────────┐    ┌─────────────┐
-│   Kaggle    │    │              │    │             │
-│  Datasets   │───▶│  Ingestion   │───▶│    S3       │
-└─────────────┘    │    Lambda    │    │ Data Lake   │
-                   │              │    │             │
-┌─────────────┐    └──────────────┘    └─────────────┘
-│ Web Crawlers│           │
-│    (HTML)   │───────────┘
-└─────────────┘
+```mermaid
+graph TD
+    A[Kaggle Datasets] --> B[Ingestion Lambda]
+    C[Web Crawlers] --> B
+    B --> D[S3 Data Lake]
+    B --> E[Local Filesystem]
+
+    subgraph "Ingestion Lambda"
+        B1[Config Manager] --> B2[Data Handlers]
+        B2 --> B3[Sink Adapters]
+        B3 --> B4[Storage Layer]
+    end
+
+    subgraph "Data Sources"
+        A
+        C
+    end
+
+    subgraph "Storage Options"
+        D
+        E
+    end
 ```
 
 ## Features
