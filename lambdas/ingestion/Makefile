@@ -1,5 +1,11 @@
 # Makefile for the ingestion lambda
 
+# Extract version from pyproject.toml
+VERSION := $(shell grep -E '^version = ' pyproject.toml | sed -E 's/version = "(.*)"/\1/')
+
+# Docker image tag - uses version from pyproject.toml
+DOCKER_TAG ?= ingestion-lambda-v$(VERSION)
+
 .PHONY: build test install ingestion-test ingestion-install ingestion-build
 
 # Install dependencies
@@ -9,9 +15,10 @@ ingestion-install: ## Install dependencies for ingestion lambda
 
 # Build the Docker image
 ingestion-build: ## Build the ingestion lambda Docker image
-	@echo "Docker image built for ingestion lambda"
+	@echo "Docker image built for ingestion lambda with tag: ingestionlambda:$(DOCKER_TAG)"
+	@echo "Extracted version: $(VERSION)"
 	poetry install --no-root
-	docker build -t ingestion .
+	docker build -t ingestionlambda:$(DOCKER_TAG) .
 
 # Run tests
 ingestion-test: ## Run tests for ingestion lambda

@@ -62,7 +62,11 @@ def serve(event=None, context=None):
         if kaggle_username and kaggle_api_key:
             logger.info("Initializing KaggleDataHandler...")
             kaggle_handler = KaggleDataHandler(
-                urls=[str(url) for url in settings.kaggle_data_source.urls],
+                urls=[
+                    str(settings.kaggle_data_source.urls[i])
+                    for i in (0, 2)
+                    if i < len(settings.kaggle_data_source.urls)
+                ],
                 username=kaggle_username,
                 api_key=kaggle_api_key,
             )
