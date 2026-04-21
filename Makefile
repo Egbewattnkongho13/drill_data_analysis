@@ -53,38 +53,50 @@ ci-gold-transform-test:
 	@echo "Running CI-style test for gold-transform lambda (matches GitHub Actions)"
 	@$(MAKE) -C lambdas/gold-transform gold-transform-ci-test
 
-# Glue Job targets
-glue-build:
-	@echo "Building Glue job package"
-	@$(MAKE) -C glue build-wheel
+# Glue Job targets - Ingestion
+.PHONY: glue-ingestion-build glue-ingestion-test glue-ingestion-lint glue-ingestion-lint-check glue-ingestion-format glue-ingestion-run glue-ingestion-clean glue-ingestion-install
+glue-ingestion-build:
+	@echo "Building Glue ingestion job package"
+	@$(MAKE) -C glue-jobs/glue-ingestion build-wheel
 
-glue-test:
-	@echo "Running Glue job tests"
-	@$(MAKE) -C glue test
+glue-ingestion-test:
+	@echo "Running Glue ingestion job tests"
+	@$(MAKE) -C glue-jobs/glue-ingestion test
 
-glue-lint:
-	@echo "Linting Glue job code"
-	@$(MAKE) -C glue lint
+glue-ingestion-lint:
+	@echo "Linting Glue ingestion job code"
+	@$(MAKE) -C glue-jobs/glue-ingestion lint
 
-glue-lint-check:
-	@echo "Checking Glue job code linting"
-	@$(MAKE) -C glue lint-check
+glue-ingestion-lint-check:
+	@echo "Checking Glue ingestion job code linting"
+	@$(MAKE) -C glue-jobs/glue-ingestion lint-check
 
-glue-format:
-	@echo "Formatting Glue job code"
-	@$(MAKE) -C glue format
+glue-ingestion-format:
+	@echo "Formatting Glue ingestion job code"
+	@$(MAKE) -C glue-jobs/glue-ingestion format
 
-glue-run:
-	@echo "Running Glue job locally"
-	@$(MAKE) -C glue run
+glue-ingestion-run:
+	@echo "Running Glue ingestion job locally"
+	@$(MAKE) -C glue-jobs/glue-ingestion run
 
-glue-clean:
-	@echo "Cleaning Glue job build artifacts"
-	@$(MAKE) -C glue clean
+glue-ingestion-clean:
+	@echo "Cleaning Glue ingestion job build artifacts"
+	@$(MAKE) -C glue-jobs/glue-ingestion clean
 
-glue-install:
-	@echo "Installing Glue job dependencies"
-	@$(MAKE) -C glue install
+glue-ingestion-install:
+	@echo "Installing Glue ingestion job dependencies"
+	@$(MAKE) -C glue-jobs/glue-ingestion install
+
+# Backwards compatibility aliases (deprecated - use glue-ingestion-* instead)
+.PHONY: glue-build glue-test glue-lint glue-lint-check glue-format glue-run glue-clean glue-install
+glue-build: glue-ingestion-build
+glue-test: glue-ingestion-test
+glue-lint: glue-ingestion-lint
+glue-lint-check: glue-ingestion-lint-check
+glue-format: glue-ingestion-format
+glue-run: glue-ingestion-run
+glue-clean: glue-ingestion-clean
+glue-install: glue-ingestion-install
 
 # CI/CD targets that mirror GitHub Actions workflows using new descriptive targets
 .PHONY: ci-lint
@@ -95,8 +107,8 @@ ci-lint: ## Run CI linting workflow locally
 		echo "  Linting $$lambda..."; \
 		./ci/scripts/lint-all-lambdas.sh $$lambda 2>/dev/null || true; \
 	done
-	@echo "Linting Glue job..."
-	@$(MAKE) -C glue lint-check
+	@echo "Linting Glue jobs..."
+	@$(MAKE) -C glue-jobs/glue-ingestion lint-check
 
 .PHONY: ci-all
 ci-all: ## Run all CI workflows locally
@@ -123,14 +135,16 @@ help:
 	@echo "  ci-gold-transform-test Run exact CI test for gold-transform lambda"
 	@echo ""
 	@echo "Glue Job Targets:"
-	@echo "  glue-build            Build the Glue job package"
-	@echo "  glue-test             Run Glue job tests"
-	@echo "  glue-lint             Run code linting"
-	@echo "  glue-lint-check       Check code linting without fixing"
-	@echo "  glue-format           Format the code"
-	@echo "  glue-run              Run the Glue job locally"
-	@echo "  glue-clean            Clean build artifacts"
-	@echo "  glue-install          Install dependencies"
+	@echo "  glue-ingestion-build  Build the Glue ingestion job package"
+	@echo "  glue-ingestion-test   Run Glue ingestion job tests"
+	@echo "  glue-ingestion-lint   Lint Glue ingestion job code"
+	@echo "  glue-ingestion-lint-check Check linting without fixing"
+	@echo "  glue-ingestion-format Format the Glue ingestion job code"
+	@echo "  glue-ingestion-run    Run the Glue ingestion job locally"
+	@echo "  glue-ingestion-clean  Clean build artifacts"
+	@echo "  glue-ingestion-install Install dependencies"
+	@echo ""
+	@echo "  (Legacy aliases: glue-build, glue-test, etc. point to glue-ingestion-*)"
 	@echo ""
 	@echo "CI/CD Targets:"
 	@echo "  ci-lint               Run CI linting workflow locally"
@@ -139,4 +153,4 @@ help:
 	@echo "General Targets:"
 	@echo "  help                  Show this help message"
 
-.PHONY: all help glue-build glue-test glue-lint glue-lint-check glue-format glue-run glue-clean glue-install ci-ingestion-test ci-silver-transform-test ci-gold-transform-test ci-lint ci-all ingestion-test ingestion-install ingestion-build silver-transform-test silver-transform-install silver-transform-build gold-transform-test gold-transform-install gold-transform-build
+.PHONY: all help ci-ingestion-test ci-silver-transform-test ci-gold-transform-test ci-lint ci-all ingestion-test ingestion-install ingestion-build silver-transform-test silver-transform-install silver-transform-build gold-transform-test gold-transform-install gold-transform-build
