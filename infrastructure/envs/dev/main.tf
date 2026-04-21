@@ -72,13 +72,14 @@ module "data_lake" {
   region        = var.region
 }
 
-# Setup Glue Job
-module "glue_job" {
+# Setup Glue Job for Ingestion
+module "glue_ingestion_job" {
   source = "../../modules/glue"
 
   glue_job_name              = "drill-data-ingestion-job"
-  glue_job_script_local_path = "${path.module}/../../../glue/glue_job.py"
-  glue_job_script_s3_key     = "scripts/glue_job.py"
+  glue_job_script_local_path = "${path.module}/../../../glue-jobs/glue-ingestion/glue_job.py"
+  glue_job_script_s3_key     = "scripts/glue_ingestion_job.py"
+  glue_job_dist_path         = "${path.module}/../../../glue-jobs/glue-ingestion/dist"
   ssm_parameter_arns         = values(module.ssm_parameters.parameter_arns)
   bronze_bucket_name         = module.data_lake.bronze_bucket_name
 }
