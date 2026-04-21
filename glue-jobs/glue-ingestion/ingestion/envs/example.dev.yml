@@ -1,0 +1,34 @@
+# Example configuration file for local development
+# This file demonstrates all available configuration options
+
+# Environment identifier - must be one of: dev, qc, prod
+environment: "dev"
+
+# Sink configuration - where to write the ingested data
+sink:
+  # Type of sink - either "local" for filesystem or "s3" for AWS S3
+  type: "local"
+
+  # For local sink: path where data will be written inside the container
+  path: "/app/data/output/glue_ingestion"
+
+  # For S3 sink: name of the S3 bucket (ignored for local sink)
+  bucket_name: "your-s3-bucket-name"
+
+# Data source configuration - where to get the data from
+kaggle_data_source:
+  # Type of data source - currently only "kaggle" is supported
+  type: "kaggle"
+
+  # List of Kaggle dataset URLs to download
+  urls:
+    - "https://www.kaggle.com/datasets/example/dataset-name"
+
+# Destination path within the sink where data will be stored
+destination: "raw/dev/glue_ingestion/"
+
+# Kaggle API credentials - required for downloading datasets
+# These should be replaced with your actual Kaggle credentials
+# Get them from https://www.kaggle.com/settings/account after creating an API token
+kaggle_username: "your-kaggle-username"
+kaggle_key: "your-kaggle-api-key"
