@@ -47,14 +47,14 @@ jobs:
 
     - name: Build Glue Job Package
       run: |
-        chmod +x ./ci/scripts/build-glue-package.sh
-        ./ci/scripts/build-glue-package.sh
+        chmod +x ./ci/scripts/build-glue-ingestion.sh
+        ./ci/scripts/build-glue-ingestion.sh
 
     - name: Upload Glue Artifacts
       uses: actions/upload-artifact@v6
       with:
         name: glue-artifacts
-        path: glue/dist/
+        path: glue-jobs/glue-ingestion/dist/
 
   terraform-deploy:
     name: Deploy Terraform Configuration
@@ -70,13 +70,12 @@ jobs:
       uses: actions/download-artifact@v7
       with:
         name: glue-artifacts
-        path: glue/dist/
+        path: glue-jobs/glue-ingestion/dist/
 
     - name: Wheel Paths Check
       run: |
         echo "Checking for built wheel files..."
-        ls glue/dist/*.whl
-        ls glue/dist/wheel_name.txt
+        ls glue-jobs/glue-ingestion/dist/*.whl
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v3
