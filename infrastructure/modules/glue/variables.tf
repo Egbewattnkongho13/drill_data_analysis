@@ -76,3 +76,13 @@ variable "bronze_bucket_name" {
   description = "The name of the bronze S3 bucket for data ingestion."
   type        = string
 }
+
+variable "glue_job_dist_path" {
+  description = "The local path to the dist directory containing wheel files for the Glue job."
+  type        = string
+
+  validation {
+    condition     = can(regex(".*dist$", var.glue_job_dist_path))
+    error_message = "The glue_job_dist_path must end with 'dist'."
+  }
+}
