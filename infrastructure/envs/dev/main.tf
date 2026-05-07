@@ -3,12 +3,19 @@ data "aws_caller_identity" "current" {}
 module "ssm_parameters" {
   source = "../../modules/ssm-parameters"
 
+  # Credentials and source URLs
   kaggle_username          = var.kaggle_username
   kaggle_key               = var.kaggle_key
   sink_type                = var.sink_type
-  sink_bucket              = var.sink_bucket
   kaggle_data_source_urls  = var.kaggle_data_source_urls
   crawler_data_source_urls = var.crawler_data_source_urls
+
+  # Runtime configs: types, destinations, prefixes
+  kaggle_destination       = var.kaggle_destination
+  bronze_type              = var.bronze_type
+  bronze_prefix            = var.bronze_prefix
+  silver_sink_type         = var.silver_sink_type
+  silver_destination       = var.silver_destination
 }
 
 module "gold_lambda_ecr" {
@@ -82,4 +89,17 @@ module "glue_ingestion_job" {
   glue_job_dist_path         = "${path.module}/../../../glue-jobs/glue-ingestion/dist"
   ssm_parameter_arns         = values(module.ssm_parameters.parameter_arns)
   bronze_bucket_name         = module.data_lake.bronze_bucket_name
+}
+
+# Setup Glue Job for Silver Transform
+module "glue_silver_transform_job" {
+  source = "../../modules/glue"
+
+  glue_job_name              = "drill-data-silver-transform-job"
+  glue_job_script_local_path = "${path.module}/../../../glue-jobs/silver-transform/threed_w_transform_job.py"
+  glue_job_script_s3_key     = "scripts/glue_silver_transform_job.py"
+  glue_job_dist_path         = "${path.module}/../../../glue-jobs/silver-transform/dist"
+  ssm_parameter_arns         = values(module.ssm_parameters.parameter_arns)
+  bronze_bucket_name         = module.data_lake.bronze_bucket_name
+  silver_bucket_name         = module.data_lake.silver_bucket_name
 }
