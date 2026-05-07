@@ -83,15 +83,6 @@ variable "sink_type" {
   }
 }
 
-variable "sink_bucket" {
-  description = "The name of the S3 bucket to use as the sink."
-  type        = string
-
-  validation {
-    condition     = can(regex("^[a-z0-9.-]{3,63}$", var.sink_bucket))
-    error_message = "The sink_bucket name must be a valid S3 bucket name."
-  }
-}
 
 variable "kaggle_data_source_urls" {
   description = "A comma-separated list of Kaggle dataset URLs to download."
@@ -111,4 +102,34 @@ variable "crawler_data_source_urls" {
     condition     = var.crawler_data_source_urls == "" || alltrue([for url in split(",", var.crawler_data_source_urls) : can(regex("^https://.*", trimspace(url)))])
     error_message = "All crawler_data_source_urls must be valid URLs."
   }
+}
+
+variable "kaggle_destination" {
+  description = "Destination path in bronze bucket for Kaggle ingestion output."
+  type        = string
+  default     = "raw/dev/glue_ingestion/"
+}
+
+variable "bronze_type" {
+  description = "Type of bronze source."
+  type        = string
+  default     = "s3"
+}
+
+variable "bronze_prefix" {
+  description = "Prefix path in bronze bucket to read from."
+  type        = string
+  default     = "raw/dev/glue_ingestion/"
+}
+
+variable "silver_sink_type" {
+  description = "Type of silver sink."
+  type        = string
+  default     = "s3"
+}
+
+variable "silver_destination" {
+  description = "Destination path in silver bucket."
+  type        = string
+  default     = "silver/dev/3w_dataset/"
 }
