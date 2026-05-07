@@ -1,0 +1,56 @@
+# Example configuration file for silver-transform job
+# This file demonstrates all available configuration options
+#
+# USAGE:
+#   1. For LOCAL TESTING (Docker): Copy to 'dev.yml' and set sink.type = "local"
+#   2. For CLOUD/AWS: Set sink.type = "s3" and configure bucket_name
+#   3. In production, values are loaded from AWS SSM Parameter Store
+#
+# SECURITY: Never commit dev.yml to git - it may contain sensitive configurations
+
+# Environment identifier - must be one of: dev, qc, prod
+environment: "dev"
+
+# Job name - will be overridden by Glue at runtime
+job_name: "drill-data-silver-transform-job"
+
+# Logging level - DEBUG, INFO, WARNING, ERROR
+logging_level: "INFO"
+
+# Source configuration - where to read Bronze layer data from
+source:
+  # Type of source - currently only "s3" is supported
+  type: "s3"
+
+  # Name of the Bronze S3 bucket
+  # NOTE: In cloud/AWS, this is overridden by --BRONZE_BUCKET job argument (from Terraform)
+  # For local dev, set to match your local bucket name
+  bucket_name: "oye-dl-bronze"
+
+  # Option 1: Specify a specific file key (recommended)
+  key: "raw/dev/glue_ingestion/3w-dataset.zip"
+
+  # Option 2: Or specify a prefix and file_pattern (commented out)
+  # prefix: "raw/dev/glue_ingestion/"
+  # file_pattern: "*.zip"
+
+# Sink configuration - where to write the Silver layer data
+sink:
+  # For LOCAL TESTING (Docker container):
+  # Uncomment these lines to write to local filesystem
+  # type: "local"
+  # path: "/app/data/output/silver_transform"
+
+  # For CLOUD/AWS ENVIRONMENT (recommended for dev.yml in cloud):
+  # Uncomment these lines to write to S3
+  # NOTE: In cloud/AWS, bucket_name is overridden by --SILVER_BUCKET job argument (from Terraform)
+  type: "s3"
+  bucket_name: "oye-dl-silver"
+
+# Destination path within the sink where transformed data will be stored
+destination: "silver/dev/3w_dataset/"
+
+# Notes:
+# - Copy this file to 'dev.yml' and customize for your local environment
+# - Never commit dev.yml to git - it may contain sensitive paths or configurations
+# - In production, these values are loaded from AWS SSM Parameter Store
