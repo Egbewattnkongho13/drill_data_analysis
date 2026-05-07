@@ -29,15 +29,6 @@ variable "sink_type" {
   }
 }
 
-variable "sink_bucket" {
-  description = "The name of the S3 bucket to use as the sink."
-  type        = string
-
-  validation {
-    condition     = can(regex("^[a-z0-9.-]{3,63}$", var.sink_bucket))
-    error_message = "The sink_bucket name must be a valid S3 bucket name."
-  }
-}
 
 variable "kaggle_data_source_urls" {
   description = "A comma-separated list of Kaggle dataset URLs to download."
@@ -57,4 +48,47 @@ variable "crawler_data_source_urls" {
     condition     = var.crawler_data_source_urls == "" || alltrue([for url in split(",", var.crawler_data_source_urls) : can(regex("^https://.*", trimspace(url)))])
     error_message = "All crawler_data_source_urls must be valid URLs."
   }
+}
+
+# Ingestion destination
+variable "kaggle_destination" {
+  description = "Destination path in bronze bucket for Kaggle ingestion output (e.g., 'raw/dev/glue_ingestion/')."
+  type        = string
+  default     = "raw/dev/glue_ingestion/"
+}
+
+# Bronze layer source configuration (for silver-transform)
+variable "bronze_type" {
+  description = "Type of bronze source (typically 's3')."
+  type        = string
+  default     = "s3"
+
+  validation {
+    condition     = var.bronze_type == "s3"
+    error_message = "Currently only 's3' is supported for bronze_type."
+  }
+}
+
+variable "bronze_prefix" {
+  description = "Prefix path in bronze bucket to read from (e.g., 'raw/dev/glue_ingestion/')."
+  type        = string
+  default     = "raw/dev/glue_ingestion/"
+}
+
+# Silver layer configuration
+variable "silver_sink_type" {
+  description = "Type of silver sink. Valid values are 's3' or 'local'."
+  type        = string
+  default     = "s3"
+
+  validation {
+    condition     = contains(["s3", "local"], var.silver_sink_type)
+    error_message = "The silver_sink_type must be either 's3' or 'local'."
+  }
+}
+
+variable "silver_destination" {
+  description = "Destination path in silver bucket (e.g., 'silver/dev/3w_dataset/')."
+  type        = string
+  default     = "silver/dev/3w_dataset/"
 }
