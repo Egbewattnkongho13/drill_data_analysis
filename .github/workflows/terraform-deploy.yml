@@ -45,16 +45,27 @@ jobs:
         # poetry config virtualenvs.create false
         # poetry config virtualenvs.in-project true
 
-    - name: Build Glue Job Package
+    - name: Build Glue Ingestion Job Package
       run: |
         chmod +x ./ci/scripts/build-glue-ingestion.sh
         ./ci/scripts/build-glue-ingestion.sh
 
-    - name: Upload Glue Artifacts
+    - name: Build Silver Transform Job Package
+      run: |
+        chmod +x ./ci/scripts/build-silver-transform.sh
+        ./ci/scripts/build-silver-transform.sh
+
+    - name: Upload Glue Ingestion Artifacts
       uses: actions/upload-artifact@v6
       with:
-        name: glue-artifacts
+        name: glue-ingestion-artifacts
         path: glue-jobs/glue-ingestion/dist/
+
+    - name: Upload Silver Transform Artifacts
+      uses: actions/upload-artifact@v6
+      with:
+        name: silver-transform-artifacts
+        path: glue-jobs/silver-transform/dist/
 
   terraform-deploy:
     name: Deploy Terraform Configuration
@@ -66,16 +77,26 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Download Glue Artifacts
+    - name: Download Glue Ingestion Artifacts
       uses: actions/download-artifact@v7
       with:
-        name: glue-artifacts
+        name: glue-ingestion-artifacts
         path: glue-jobs/glue-ingestion/dist/
+
+    - name: Download Silver Transform Artifacts
+      uses: actions/download-artifact@v7
+      with:
+        name: silver-transform-artifacts
+        path: glue-jobs/silver-transform/dist/
 
     - name: Wheel Paths Check
       run: |
         echo "Checking for built wheel files..."
-        ls glue-jobs/glue-ingestion/dist/*.whl
+        echo "Ingestion wheels:"
+        ls -lh glue-jobs/glue-ingestion/dist/*.whl
+        echo ""
+        echo "Silver transform wheels:"
+        ls -lh glue-jobs/silver-transform/dist/*.whl
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v3
@@ -109,9 +130,8 @@ jobs:
         KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
         KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         SINK_TYPE: ${{ vars.SINK_TYPE }}
-        S3_SINK_BUCKET: ${{ vars.S3_SINK_BUCKET }}
       run: |
-        set -eu 
+        set -eu
 
         # Make scripts executable
         chmod +x ./ci/scripts/lambda-version.sh
@@ -124,7 +144,7 @@ jobs:
         kaggle_urls=$(./ci/scripts/extract-urls.sh --kaggle)
         crawler_urls=$(./ci/scripts/extract-urls.sh --crawler)
 
-        # Replace all placeholders in template file 
+        # Replace all placeholders in template file
         sed -e "s|GOLD_VERSION|${gold_version}|g" \
           -e "s|SILVER_VERSION|${silver_version}|g" \
           -e "s|INGESTION_VERSION|${ingestion_version}|g" \
@@ -133,7 +153,6 @@ jobs:
           -e "s|CRAWLER_DATASOURCE_URLS|${crawler_urls}|g" \
           -e "s|KAGGLE_USERNAME|${KAGGLE_USERNAME}|g" \
           -e "s|SINK_TYPE|${SINK_TYPE}|g" \
-          -e "s|S3_SINK_BUCKET|${S3_SINK_BUCKET}|g" \
           infrastructure/envs/${{ env.environment }}/variables.tfvars.template > infrastructure/envs/${{ env.environment }}/variables.tfvars
 
     - name: Terraform Plan
