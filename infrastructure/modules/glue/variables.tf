@@ -77,6 +77,12 @@ variable "bronze_bucket_name" {
   type        = string
 }
 
+variable "silver_bucket_name" {
+  description = "The name of the silver S3 bucket for transformed data."
+  type        = string
+  default     = ""
+}
+
 variable "glue_job_dist_path" {
   description = "The local path to the dist directory containing wheel files for the Glue job."
   type        = string

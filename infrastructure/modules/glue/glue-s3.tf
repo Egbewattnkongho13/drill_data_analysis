@@ -9,9 +9,10 @@ resource "aws_glue_job" "this" {
   worker_type       = var.glue_job_worker_type
   number_of_workers = var.glue_job_number_of_workers
 
-  default_arguments = {
+  default_arguments = merge({
     "--job-language"             = "python"
     "--ENVIRONMENT"              = var.environment
+    "--BRONZE_BUCKET"            = var.bronze_bucket_name
     "--enable-metrics"           = "true"
     "--TempDir"                  = "s3://${aws_s3_bucket.glue_assets.id}/temp/"
     "--enable-glue-datacatalog"  = ""
@@ -20,7 +21,7 @@ resource "aws_glue_job" "this" {
     "--continuous-log-logGroup"  = aws_cloudwatch_log_group.ingestion-lg.name
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-continuous-log-filter"     = "true"
-  }
+  }, var.silver_bucket_name != "" ? { "--SILVER_BUCKET" = var.silver_bucket_name } : {})
 
   command {
     name            = "glueetl"
