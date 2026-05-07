@@ -25,9 +25,9 @@ class IngestionJobConfig(BaseJobConfig):
     def ssm_param_map(cls, env: str) -> Dict[str, str]:
         # Dotted keys mirror the YAML structure — OmegaConf merges them in place.
         # Keys prefixed with '_' are secrets handled by inject_secrets(), not merged.
+        # Note: sink.bucket_name comes from --BRONZE_BUCKET job argument, not SSM
         return {
             "sink.type":          f"/drill-data-analysis/{env}/sink/type",
-            "sink.bucket_name":   f"/drill-data-analysis/{env}/sink/bucket_name",
             "source.urls":        f"/drill-data-analysis/{env}/kaggle/data_source_urls",
             "destination":        f"/drill-data-analysis/{env}/kaggle/destination",
             "_kaggle_username":   f"/drill-data-analysis/{env}/kaggle/username",

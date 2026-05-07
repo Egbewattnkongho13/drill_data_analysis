@@ -59,12 +59,15 @@ class IngestionJob(GlueJob):
 
 
 if __name__ == "__main__":
-    args = getResolvedOptions(sys.argv, ["JOB_NAME", "ENVIRONMENT"])
+    args = getResolvedOptions(sys.argv, ["JOB_NAME", "ENVIRONMENT", "BRONZE_BUCKET"])
     os.environ["ENVIRONMENT"] = args.get("ENVIRONMENT", "dev")
 
     env = os.environ["ENVIRONMENT"]
     config_path = Path(__file__).parent / "ingestion" / "envs" / f"{env}.yml"
     config = load_config(IngestionJobConfig, str(config_path))
+
+    # Override config with Terraform-provided values
     config.job_name = args["JOB_NAME"]
+    config.sink.bucket_name = args["BRONZE_BUCKET"]
 
     IngestionJob(config).execute()
