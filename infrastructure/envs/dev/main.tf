@@ -11,11 +11,11 @@ module "ssm_parameters" {
   crawler_data_source_urls = var.crawler_data_source_urls
 
   # Runtime configs: types, destinations, prefixes
-  kaggle_destination       = var.kaggle_destination
-  bronze_type              = var.bronze_type
-  bronze_prefix            = var.bronze_prefix
-  silver_sink_type         = var.silver_sink_type
-  silver_destination       = var.silver_destination
+  kaggle_destination = var.kaggle_destination
+  bronze_type        = var.bronze_type
+  bronze_prefix      = var.bronze_prefix
+  silver_sink_type   = var.silver_sink_type
+  silver_destination = var.silver_destination
 }
 
 module "gold_lambda_ecr" {
