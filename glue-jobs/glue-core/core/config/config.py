@@ -73,7 +73,7 @@ class S3SinkConfig(BaseModel):
     """Configuration for writing data to an S3 bucket."""
 
     type: Literal["s3"]
-    bucket_name: str
+    bucket_name: str = ""  # Optional - can be overridden by job arguments
 
 
 class LocalSinkConfig(BaseModel):
@@ -124,7 +124,7 @@ class S3SourceConfig(BaseModel):
     """Configuration for reading data from S3."""
 
     type: Literal["s3"] = "s3"
-    bucket_name: str
+    bucket_name: str = ""  # Optional - can be overridden by job arguments
     prefix: str = ""
     file_pattern: str = "*"
     key: str | None = None  # specific file key; overrides prefix+file_pattern when set
