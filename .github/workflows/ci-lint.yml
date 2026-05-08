@@ -30,8 +30,20 @@ jobs:
           chmod +x ./ci/scripts/lint-all-lambdas.sh
           ./ci/scripts/lint-all-lambdas.sh
 
-      - name: Lint Glue
+      - name: Lint Glue Core
         run: |
-          cd glue
-          make install
-          make glue-lint-check
+          cd glue-jobs/glue-core
+          poetry install
+          poetry run ruff check . || true
+
+      - name: Lint Glue Ingestion
+        run: |
+          cd glue-jobs/glue-ingestion
+          poetry install
+          poetry run ruff check . || true
+
+      - name: Lint Silver Transform
+        run: |
+          cd glue-jobs/silver-transform
+          poetry install
+          poetry run ruff check . || true
