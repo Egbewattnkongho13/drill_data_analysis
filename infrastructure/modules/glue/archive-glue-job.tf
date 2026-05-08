@@ -2,8 +2,8 @@ locals {
   # Find all wheel files in the dist directory
   wheel_dir = abspath(var.glue_job_dist_path)
 
-  # Get all .whl files from the dist directory
-  wheel_files = fileset(local.wheel_dir, "*.whl")
+  # Get all .whl files from the dist directory (use try-catch for robustness)
+  wheel_files = try(fileset(local.wheel_dir, "*.whl"), [])
 
   # Create a map of wheel files with their full paths
   wheels_map = {
