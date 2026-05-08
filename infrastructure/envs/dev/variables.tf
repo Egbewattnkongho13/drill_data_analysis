@@ -108,28 +108,53 @@ variable "kaggle_destination" {
   description = "Destination path in bronze bucket for Kaggle ingestion output."
   type        = string
   default     = "raw/dev/glue_ingestion/"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9/_-]+/$", var.kaggle_destination))
+    error_message = "The kaggle_destination must be a valid S3 prefix (no leading slash, must end with /)."
+  }
 }
 
 variable "bronze_type" {
   description = "Type of bronze source."
   type        = string
   default     = "s3"
+
+  validation {
+    condition     = var.bronze_type == "s3"
+    error_message = "Currently only 's3' is supported for bronze_type."
+  }
 }
 
 variable "bronze_prefix" {
   description = "Prefix path in bronze bucket to read from."
   type        = string
   default     = "raw/dev/glue_ingestion/"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9/_-]+/$", var.bronze_prefix))
+    error_message = "The bronze_prefix must be a valid S3 prefix (no leading slash, must end with /)."
+  }
 }
 
 variable "silver_sink_type" {
   description = "Type of silver sink."
   type        = string
   default     = "s3"
+
+  validation {
+    condition     = contains(["s3", "local"], var.silver_sink_type)
+    error_message = "The silver_sink_type must be either 's3' or 'local'."
+  }
 }
 
 variable "silver_destination" {
   description = "Destination path in silver bucket."
   type        = string
   default     = "silver/dev/3w_dataset/"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9/_-]+/$", var.silver_destination))
+    error_message = "The silver_destination must be a valid S3 prefix (no leading slash, must end with /)."
+  }
 }
