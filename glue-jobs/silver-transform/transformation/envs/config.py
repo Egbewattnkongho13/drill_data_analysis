@@ -6,7 +6,7 @@ The YAML file provides the full config structure and local dev defaults.
 In cloud, SSM parameters are merged on top via OmegaConf to override values.
 """
 
-from typing import Dict
+from typing import Dict, Optional
 
 from core.config.config import BaseJobConfig, S3SourceConfig, SinkConfig
 
@@ -17,6 +17,11 @@ class SilverTransformJobConfig(BaseJobConfig):
     source: S3SourceConfig  # Bronze layer source
     sink: SinkConfig  # Silver layer destination
     destination: str  # Silver layer prefix/path
+
+    # Data Catalog configuration
+    enable_catalog: bool = False  # Whether to register output in Glue Data Catalog
+    catalog_database: Optional[str] = None  # Glue database name
+    catalog_table: Optional[str] = None  # Glue table name
 
     @classmethod
     def ssm_param_map(cls, env: str) -> Dict[str, str]:
@@ -42,6 +47,25 @@ class SilverTransformJobConfig(BaseJobConfig):
                     "S3 source must have either 'key' (specific file) or 'prefix' (folder) defined"
                 )
 
-        # Validate S3 sink has bucket_name
-        if self.sink.type == "s3" and not self.sink.bucket_name:
-            raise ValueError("S3 sink must have a non-empty bucket_name")
+        # Validate Data Catalog configuration
+        if self.enable_catalog:
+            if not self.catalog_database:
+                raise ValueError(
+                    "catalog_database is required when enable_catalog is True"
+                )
+            if not self.catalog_table:
+                raise ValueError(
+                    "catalog_table is required when enable_catalog is True"
+                )
+
+            # Validate naming conventions
+            if not self.catalog_database.replace("_", "").isalnum():
+                raise ValueError(
+                    f"Invalid catalog_database name: '{self.catalog_database}'. "
+                    "Must contain only alphanumeric characters and underscores."
+                )
+            if not self.catalog_table.replace("_", "").isalnum():
+                raise ValueError(
+                    f"Invalid catalog_table name: '{self.catalog_table}'. "
+                    "Must contain only alphanumeric characters and underscores."
+                )

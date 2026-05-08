@@ -21,7 +21,13 @@ resource "aws_glue_job" "this" {
     "--continuous-log-logGroup"  = aws_cloudwatch_log_group.ingestion-lg.name
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-continuous-log-filter"     = "true"
-  }, var.silver_bucket_name != "" ? { "--SILVER_BUCKET" = var.silver_bucket_name } : {})
+  },
+  var.silver_bucket_name != "" ? { "--SILVER_BUCKET" = var.silver_bucket_name } : {},
+  var.catalog_database != "" ? {
+    "--ENABLE_CATALOG"   = "true"
+    "--CATALOG_DATABASE" = var.catalog_database
+    "--CATALOG_TABLE"    = var.catalog_table
+  } : {})
 
   command {
     name            = "glueetl"

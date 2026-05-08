@@ -102,4 +102,7 @@ module "glue_silver_transform_job" {
   ssm_parameter_arns         = values(module.ssm_parameters.parameter_arns)
   bronze_bucket_name         = module.data_lake.bronze_bucket_name
   silver_bucket_name         = module.data_lake.silver_bucket_name
+
+  catalog_database = "oye_silver"
+  catalog_table    = "threed_w_dataset"
 }

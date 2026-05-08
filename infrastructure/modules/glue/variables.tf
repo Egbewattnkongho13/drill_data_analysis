@@ -92,3 +92,25 @@ variable "glue_job_dist_path" {
     error_message = "The glue_job_dist_path must end with 'dist'."
   }
 }
+
+variable "catalog_database" {
+  description = "Glue Data Catalog database name (optional). If provided, job will register tables."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.catalog_database == "" || can(regex("^[a-z0-9_]+$", var.catalog_database))
+    error_message = "Catalog database name must contain only lowercase letters, numbers, and underscores."
+  }
+}
+
+variable "catalog_table" {
+  description = "Glue Data Catalog table name (optional). Required if catalog_database is set."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.catalog_table == "" || can(regex("^[a-z0-9_]+$", var.catalog_table))
+    error_message = "Catalog table name must contain only lowercase letters, numbers, and underscores."
+  }
+}

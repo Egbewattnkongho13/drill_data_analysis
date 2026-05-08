@@ -89,14 +89,42 @@ class SilverTransformJob(GlueJob):
             output_path = f"{self.config.sink.path}/{self.config.destination}"
 
         self.logger.info(f"Writing partitioned Parquet to silver layer at {output_path}")
-        spark_df.write.mode("overwrite").partitionBy("source_type").parquet(output_path)
+
+        # Write to S3 and optionally to Glue Data Catalog
+        if self.config.enable_catalog and self.config.catalog_database and self.config.catalog_table:
+            catalog_name = f"{self.config.catalog_database}.{self.config.catalog_table}"
+            self.logger.info(f"Writing to Glue Data Catalog: {catalog_name}")
+
+            spark_df.write \
+                .mode("overwrite") \
+                .partitionBy("source_type") \
+                .format("parquet") \
+                .option("path", output_path) \
+                .saveAsTable(catalog_name)
+
+            self.logger.info(f"Successfully wrote to catalog table: {catalog_name}")
+        else:
+            spark_df.write.mode("overwrite").partitionBy("source_type").parquet(output_path)
+            self.logger.info("Data Catalog not enabled - wrote Parquet files only")
 
         self.logger.info(f"Successfully wrote {combined_df.shape[0]} rows to silver layer")
 
 
 if __name__ == "__main__":
-    # Get job arguments from Glue
-    args = getResolvedOptions(sys.argv, ["JOB_NAME", "ENVIRONMENT", "BRONZE_BUCKET", "SILVER_BUCKET"])
+    # Get job arguments from Glue (catalog args are optional)
+    required_args = ["JOB_NAME", "ENVIRONMENT", "BRONZE_BUCKET", "SILVER_BUCKET"]
+    args = getResolvedOptions(sys.argv, required_args)
+
+    # Try to get optional catalog arguments
+    optional_args = {}
+    try:
+        optional_args = getResolvedOptions(
+            sys.argv,
+            ["ENABLE_CATALOG", "CATALOG_DATABASE", "CATALOG_TABLE"]
+        )
+    except Exception:
+        pass  # Optional args not provided, skip
+
     os.environ["ENVIRONMENT"] = args.get("ENVIRONMENT", "dev")
 
     # Load configuration
@@ -108,6 +136,12 @@ if __name__ == "__main__":
     config.job_name = args["JOB_NAME"]
     config.source.bucket_name = args["BRONZE_BUCKET"]
     config.sink.bucket_name = args["SILVER_BUCKET"]
+
+    # Override catalog settings if provided
+    if optional_args.get("ENABLE_CATALOG", "").lower() == "true":
+        config.enable_catalog = True
+        config.catalog_database = optional_args.get("CATALOG_DATABASE", "")
+        config.catalog_table = optional_args.get("CATALOG_TABLE", "")
 
     # Execute job
     SilverTransformJob(config).execute()
