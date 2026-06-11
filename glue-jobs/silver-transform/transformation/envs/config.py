@@ -30,9 +30,11 @@ class SilverTransformJobConfig(BaseJobConfig):
         Keys mirror the YAML structure — OmegaConf merges them in place.
         Keys prefixed with '_' are secrets handled by inject_secrets(), not merged.
         Note: Bucket names come from --BRONZE_BUCKET and --SILVER_BUCKET job arguments, not SSM
+        Note: Both source.key and source.prefix are available - use key for specific files, prefix for pattern matching
         """
         return {
             "source.type":        f"/drill-data-analysis/{env}/bronze/type",
+            "source.key":         f"/drill-data-analysis/{env}/bronze/key",
             "source.prefix":      f"/drill-data-analysis/{env}/bronze/prefix",
             "sink.type":          f"/drill-data-analysis/{env}/silver/sink_type",
             "destination":        f"/drill-data-analysis/{env}/silver/destination",

@@ -75,6 +75,12 @@ variable "bronze_prefix" {
   default     = "raw/dev/glue_ingestion/"
 }
 
+variable "bronze_key" {
+  description = "Specific S3 key for bronze source file (e.g., 'raw/dev/glue_ingestion/3w-dataset.zip'). Optional - use either key or prefix."
+  type        = string
+  default     = "raw/dev/glue_ingestion/3w-dataset.zip"
+}
+
 # Silver layer configuration
 variable "silver_sink_type" {
   description = "Type of silver sink. Valid values are 's3' or 'local'."

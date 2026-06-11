@@ -14,6 +14,7 @@ module "ssm_parameters" {
   kaggle_destination = var.kaggle_destination
   bronze_type        = var.bronze_type
   bronze_prefix      = var.bronze_prefix
+  bronze_key         = var.bronze_key
   silver_sink_type   = var.silver_sink_type
   silver_destination = var.silver_destination
 }

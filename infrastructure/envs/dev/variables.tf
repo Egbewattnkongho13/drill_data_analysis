@@ -137,6 +137,12 @@ variable "bronze_prefix" {
   }
 }
 
+variable "bronze_key" {
+  description = "Specific S3 key for bronze source file. Optional - use either key or prefix."
+  type        = string
+  default     = "raw/dev/glue_ingestion/3w-dataset.zip"
+}
+
 variable "silver_sink_type" {
   description = "Type of silver sink."
   type        = string

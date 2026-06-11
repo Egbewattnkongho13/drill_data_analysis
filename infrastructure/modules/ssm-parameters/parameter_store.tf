@@ -48,6 +48,12 @@ resource "aws_ssm_parameter" "bronze_prefix" {
   type  = "String"
 }
 
+resource "aws_ssm_parameter" "bronze_key" {
+  name  = "/drill-data-analysis/dev/bronze/key"
+  value = var.bronze_key
+  type  = "String"
+}
+
 resource "aws_ssm_parameter" "silver_sink_type" {
   name  = "/drill-data-analysis/dev/silver/sink_type"
   value = var.silver_sink_type

@@ -8,13 +8,15 @@ and writes transformed data to the silver layer using the GlueJob framework.
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 from awsglue.context import GlueContext #type: ignore
 from awsglue.utils import getResolvedOptions #type: ignore
 from pyspark.context import SparkContext
+from pyspark.sql import SparkSession
 
 # Import from glue-core
-from core import GlueJob, BronzeSource, LocalSink, S3Sink, load_config
+from core import GlueJob, BronzeSource, LocalSink, S3Sink, load_config, Sink
 
 # Import transformation components
 from transformation import SilverTransformJobConfig, ThreedWDataHandler
@@ -26,10 +28,10 @@ class SilverTransformJob(GlueJob):
     def __init__(self, config: SilverTransformJobConfig) -> None:
         super().__init__(config)
         self.config: SilverTransformJobConfig = config
-        self.spark = None
-        self.bronze_source = None
-        self.sink = None
-        self.handler = None
+        self.spark: Optional[SparkSession] = None
+        self.bronze_source: Optional[BronzeSource] = None
+        self.sink: Optional[Sink] = None
+        self.handler: Optional[ThreedWDataHandler] = None
 
     def setup(self) -> None:
         """Initialize Spark context, sources, sinks, and transformation handler."""
@@ -59,6 +61,11 @@ class SilverTransformJob(GlueJob):
 
     def run(self) -> None:
         """Execute the silver transformation job logic."""
+        # Ensure setup() was called
+        assert self.spark is not None, "Spark session not initialized. Call setup() first."
+        assert self.bronze_source is not None, "Bronze source not initialized. Call setup() first."
+        assert self.handler is not None, "Handler not initialized. Call setup() first."
+
         # STEP 1: SOURCE - Read ZIP archive from Bronze
         if self.config.source.key:
             # Specific file
@@ -135,7 +142,10 @@ if __name__ == "__main__":
     # Override config with Terraform-provided values
     config.job_name = args["JOB_NAME"]
     config.source.bucket_name = args["BRONZE_BUCKET"]
-    config.sink.bucket_name = args["SILVER_BUCKET"]
+
+    # Override sink bucket name if it's an S3 sink (cloud deployment)
+    if config.sink.type == "s3":
+        config.sink.bucket_name = args["SILVER_BUCKET"]
 
     # Override catalog settings if provided
     if optional_args.get("ENABLE_CATALOG", "").lower() == "true":
