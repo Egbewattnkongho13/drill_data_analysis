@@ -212,6 +212,8 @@ def load_config(config_cls: Type[T], config_path: str) -> T:
                 logger.error(f"SSM ACCESS DENIED: {e} - Check GetParameter permissions on specific paths in Glue role policy. Falling back to local YAML config.")
             else:
                 logger.error(f"SSM CLIENT ERROR [{error_code}]: {e} - Falling back to local YAML config.")
+        except Exception as e:
+            logger.error(f"UNEXPECTED ERROR during SSM config loading: {e} - Falling back to local YAML config.")
 
     # --- Local path: YAML fallback ---
     logger.info(f"Loading config from YAML: {config_path}")
