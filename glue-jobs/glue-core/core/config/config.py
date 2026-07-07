@@ -11,7 +11,6 @@ import os
 from typing import Annotated, Dict, List, Literal, Type, TypeVar, Union
 
 import boto3
-import yaml
 from botocore.exceptions import ClientError, EndpointConnectionError, NoCredentialsError
 from omegaconf import OmegaConf
 from pydantic import BaseModel, Field, HttpUrl, ValidationError, field_validator
@@ -54,7 +53,7 @@ class BaseJobConfig(BaseModel):
         """
         pass
 
-    def validate(self) -> None:
+    def pre_validate(self) -> None:
         """Perform semantic validation beyond Pydantic type checks.
 
         Override in each job config to add job-specific rules, e.g.:
@@ -145,6 +144,7 @@ def _fetch_ssm_params(param_map: Dict[str, str], region: str) -> Dict[str, str]:
         try:
             result = ssm.get_parameter(Name=path, WithDecryption=True)
             fetched[dotted_key] = result["Parameter"]["Value"]
+            logger.info(f"Fetched SSM parameter: {path} → {dotted_key}")
         except ClientError as e:
             if e.response["Error"]["Code"] == "ParameterNotFound":
                 logger.warning(f"SSM parameter not found: {path}")
@@ -194,16 +194,24 @@ def load_config(config_cls: Type[T], config_path: str) -> T:
             for dotted_key, value in fetched.items():
                 if not dotted_key.startswith("_"):
                     OmegaConf.update(conf, dotted_key, value, merge=True)
-
+                    logger.info(f"Config loaded from SSM: {dotted_key} → {value}")
             config = config_cls(**OmegaConf.to_container(conf, resolve=True))
-            config.validate()
+            config.pre_validate()
             logger.info(f"Config loaded and validated from SSM for {config_cls.__name__}.")
             return config
 
-        except (NoCredentialsError, EndpointConnectionError):
-            logger.warning("No AWS credentials. Falling back to local YAML config.")
+        except NoCredentialsError:
+            logger.error("NO AWS CREDENTIALS FOUND - Glue role missing sts:GetCallerIdentity permission. Falling back to local YAML config.")
+        except EndpointConnectionError as e:
+            logger.error(f"CANNOT CONNECT TO SSM ENDPOINT: {e} - Check VPC/network configuration. Falling back to local YAML config.")
         except ClientError as e:
-            logger.warning(f"SSM error ({e}). Falling back to local YAML config.")
+            error_code = e.response['Error']['Code']
+            if error_code == 'ParameterNotFound':
+                logger.error(f"SSM PARAMETER NOT FOUND: {e} - Check parameter names and paths exist in Parameter Store. Falling back to local YAML config.")
+            elif error_code == 'AccessDenied':
+                logger.error(f"SSM ACCESS DENIED: {e} - Check GetParameter permissions on specific paths in Glue role policy. Falling back to local YAML config.")
+            else:
+                logger.error(f"SSM CLIENT ERROR [{error_code}]: {e} - Falling back to local YAML config.")
 
     # --- Local path: YAML fallback ---
     logger.info(f"Loading config from YAML: {config_path}")
@@ -214,7 +222,7 @@ def load_config(config_cls: Type[T], config_path: str) -> T:
 
     try:
         config = config_cls(**OmegaConf.to_container(conf, resolve=True))
-        config.validate()
+        config.pre_validate()
         logger.info(f"Config loaded and validated from YAML for {config_cls.__name__}.")
         return config
     except ValidationError as e:
