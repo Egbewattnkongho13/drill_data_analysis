@@ -1,83 +1,116 @@
 """
-Unit tests for 3W Dataset Handler.
+Unit tests for the 3W Dataset handler.
 
-These tests cover the helper functions in isolation without requiring Spark context.
+These cover the staging helpers, which are pure Python and run without a Spark
+context. The Spark-side transform() is exercised by integration tests.
 """
 
-import pandas as pd
 import pytest
 
-from transformation.handlers.threed_w_handler import ThreedWDataHandler
+from transformation.handlers.threed_w_handler import (
+    HIVE_NULL_PARTITION,
+    ThreedWDataHandler,
+)
+
+STAGING = "_unzipped/dev/3w_dataset"
 
 
-class TestThreedWDataHandler:
-    """Test suite for ThreedWDataHandler."""
+class TestNormalise:
+    """Paths inside a ZIP may use either separator regardless of the host OS."""
 
-    def test_parse_source_type_simulated(self):
-        """Test parsing simulated source type from filename."""
-        handler = ThreedWDataHandler()
-        assert handler.parse_source_type("SIMULATED_1_001.parquet") == "simulated"
+    def test_backslashes_become_forward_slashes(self):
+        assert (
+            ThreedWDataHandler.normalise(r"2.0.0\3\WELL-00001_20170201.parquet")
+            == "2.0.0/3/WELL-00001_20170201.parquet"
+        )
 
-    def test_parse_source_type_hand_drawn(self):
-        """Test parsing hand drawn source type from filename."""
-        handler = ThreedWDataHandler()
-        assert handler.parse_source_type("DRAWN_2_001.parquet") == "hand_drawn"
+    def test_posix_paths_are_unchanged(self):
+        path = "2.0.0/3/WELL-00001_20170201.parquet"
+        assert ThreedWDataHandler.normalise(path) == path
 
-    def test_parse_source_type_real(self):
-        """Test parsing real source type from filename."""
-        handler = ThreedWDataHandler()
-        assert handler.parse_source_type("3_001.parquet") == "real"
 
-    def test_parse_class_from_folder(self):
-        """Test parsing class from folder path."""
-        handler = ThreedWDataHandler()
-        assert handler.parse_class_from_folder("path/to/5") == 5
-        assert handler.parse_class_from_folder("5") == 5
+class TestIsDataFile:
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "2.0.0/0/WELL-00001_20170201010207.parquet",
+            "2.0.0/5/SIMULATED_00072.parquet",
+            r"2.0.0\5\DRAWN_00007.parquet",
+            "2.0.0/1/WELL-00002_20170301.PARQUET",
+        ],
+    )
+    def test_accepts_parquet_entries(self, path):
+        assert ThreedWDataHandler.is_data_file(path) is True
 
-    def test_parse_class_from_folder_invalid(self):
-        """Test parsing class from invalid folder path."""
-        handler = ThreedWDataHandler()
-        assert handler.parse_class_from_folder("path/to/invalid") == -1
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "2.0.0/0/",  # directory entry
+            "2.0.0/README.md",
+            "2.0.0/0/dataset.csv",
+            "__MACOSX/2.0.0/0/._WELL-00001.parquet",
+            "2.0.0/0/.DS_Store",
+        ],
+    )
+    def test_rejects_everything_else(self, path):
+        assert ThreedWDataHandler.is_data_file(path) is False
 
-    def test_parse_well_id(self):
-        """Test parsing well ID from filename."""
-        handler = ThreedWDataHandler()
-        assert handler.parse_well_id("SIMULATED_1_001.parquet") == "SIMULATED_1_001"
-        assert handler.parse_well_id("DRAWN_2_002.parquet") == "DRAWN_2_002"
-        assert handler.parse_well_id("3_003.parquet") == "3_003"
 
-    def test_transform_dataframe(self):
-        """Test transforming a DataFrame with metadata."""
-        handler = ThreedWDataHandler()
+class TestFolderClass:
+    def test_parses_the_immediate_parent_folder(self):
+        assert (
+            ThreedWDataHandler.folder_class("2.0.0/3/WELL-00001_20170201.parquet") == 3
+        )
 
-        # Create a sample DataFrame
-        data = {
-            'col1': [1, 2, 3],
-            'col2': [4, 5, 6],
-            'col3': [7, 8, 9],
-            'col4': [10, 11, 12],
-            'col5': [13, 14, 15],
-            'col6': [16, 17, 18],
-            'col7': [19, 20, 21]
-        }
-        df = pd.DataFrame(data)
+    def test_parses_class_zero(self):
+        assert (
+            ThreedWDataHandler.folder_class("2.0.0/0/WELL-00001_20170201.parquet") == 0
+        )
 
-        # Transform the DataFrame
-        transformed_df = handler.transform_dataframe(df, "simulated", "well_001", 3)
+    def test_handles_windows_separators(self):
+        assert ThreedWDataHandler.folder_class(r"2.0.0\7\SIMULATED_00072.parquet") == 7
 
-        # Check that metadata columns were added
-        assert "source_type" in transformed_df.columns
-        assert "well_id" in transformed_df.columns
-        assert "class" in transformed_df.columns
+    def test_returns_none_for_a_non_numeric_folder(self):
+        """No magic number: an unparseable folder is genuinely unknown."""
+        assert ThreedWDataHandler.folder_class("2.0.0/misc/WELL-00001.parquet") is None
 
-        # Check that values are correct
-        assert transformed_df["source_type"].iloc[0] == "simulated"
-        assert transformed_df["well_id"].iloc[0] == "well_001"
-        assert transformed_df["class"].iloc[0] == 3
+    def test_returns_none_when_there_is_no_folder(self):
+        assert ThreedWDataHandler.folder_class("WELL-00001.parquet") is None
 
-        # Check that sensor columns are float32
-        for col in ['col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7']:
-            assert transformed_df[col].dtype == "float32"
 
-        # Check that class column is Int64
-        assert transformed_df["class"].dtype == "Int64"
+class TestStagingKey:
+    def test_maps_class_folder_to_a_hive_partition(self):
+        assert (
+            ThreedWDataHandler.staging_key(
+                "2.0.0/3/WELL-00001_20170201010207.parquet", STAGING
+            )
+            == f"{STAGING}/folder_class=3/WELL-00001_20170201010207.parquet"
+        )
+
+    def test_tolerates_a_trailing_slash_on_the_prefix(self):
+        assert (
+            ThreedWDataHandler.staging_key("2.0.0/0/SIMULATED_00072.parquet", STAGING + "/")
+            == f"{STAGING}/folder_class=0/SIMULATED_00072.parquet"
+        )
+
+    def test_unknown_class_uses_sparks_null_partition(self):
+        """Spark reads this literal back as NULL, so the row is not falsely labelled."""
+        key = ThreedWDataHandler.staging_key("2.0.0/misc/WELL-00001.parquet", STAGING)
+        assert key == f"{STAGING}/folder_class={HIVE_NULL_PARTITION}/WELL-00001.parquet"
+
+    def test_windows_entries_produce_posix_keys(self):
+        key = ThreedWDataHandler.staging_key(r"2.0.0\8\DRAWN_00007.parquet", STAGING)
+        assert key == f"{STAGING}/folder_class=8/DRAWN_00007.parquet"
+        assert "\\" not in key
+
+    def test_distinct_classes_do_not_collide(self):
+        """Same file name under different class folders must stay distinct."""
+        a = ThreedWDataHandler.staging_key("2.0.0/0/WELL-00001_1.parquet", STAGING)
+        b = ThreedWDataHandler.staging_key("2.0.0/1/WELL-00001_1.parquet", STAGING)
+        assert a != b
+
+
+class TestSchemaConstants:
+    def test_expects_the_full_v2_sensor_set(self):
+        assert len(ThreedWDataHandler.EXPECTED_SENSORS) == 27
+        assert len(set(ThreedWDataHandler.EXPECTED_SENSORS)) == 27
