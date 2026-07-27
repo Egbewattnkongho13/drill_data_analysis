@@ -30,9 +30,18 @@ source:
   # Option 1: Specify a specific file key (recommended)
   key: "raw/dev/glue_ingestion/3w-dataset.zip"
 
-  # Option 2: Or specify a prefix and file_pattern (commented out)
+  # Option 2: Or specify a prefix — every *.zip beneath it is processed
   # prefix: "raw/dev/glue_ingestion/"
-  # file_pattern: "*.zip"
+
+# Staging prefix (Bronze bucket) where archives are unzipped before Spark reads
+# them. ZIP is not a splittable format, so the job extracts the archive to S3
+# once and then lets every Spark executor read the Parquet files in parallel.
+# MUST NOT live under source.prefix, or a re-run would re-scan its own output.
+staging_prefix: "_unzipped/dev/3w_dataset"
+
+# Log the row count per (folder_class, class) pair before writing.
+# Costs an extra pass over the data - useful during bring-up.
+log_label_distribution: false
 
 # Sink configuration - where to write the Silver layer data
 sink:

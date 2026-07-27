@@ -18,6 +18,14 @@ class SilverTransformJobConfig(BaseJobConfig):
     sink: SinkConfig  # Silver layer destination
     destination: str  # Silver layer prefix/path
 
+    # Where the job unzips Bronze archives before Spark reads them. Lives in the
+    # Bronze bucket: unzipping is decompression, not transformation.
+    staging_prefix: str = "_unzipped/dev/3w_dataset"
+
+    # Log the row count per (folder_class, class) pair before writing. Costs an
+    # extra pass over the data; useful while the label semantics are unsettled.
+    log_label_distribution: bool = False
+
     # Data Catalog configuration
     enable_catalog: bool = False  # Whether to register output in Glue Data Catalog
     catalog_database: Optional[str] = None  # Glue database name
@@ -36,11 +44,12 @@ class SilverTransformJobConfig(BaseJobConfig):
             "source.type":        f"/drill-data-analysis/{env}/bronze/type",
             "source.key":         f"/drill-data-analysis/{env}/bronze/key",
             "source.prefix":      f"/drill-data-analysis/{env}/bronze/prefix",
+            "staging_prefix":     f"/drill-data-analysis/{env}/bronze/staging_prefix",
             "sink.type":          f"/drill-data-analysis/{env}/silver/sink_type",
             "destination":        f"/drill-data-analysis/{env}/silver/destination",
         }
 
-    def validate(self) -> None:
+    def pre_validate(self) -> None:
         """Validate silver-transform specific config rules."""
         # Validate that source has either key or prefix
         if self.source.type == "s3":
@@ -48,6 +57,19 @@ class SilverTransformJobConfig(BaseJobConfig):
                 raise ValueError(
                     "S3 source must have either 'key' (specific file) or 'prefix' (folder) defined"
                 )
+
+        # The staging prefix must not sit inside the archive prefix the job
+        # scans, or a re-run would try to unzip its own extracted Parquet files.
+        staging = self.staging_prefix.strip("/")
+        if not staging:
+            raise ValueError("staging_prefix must be a non-empty S3 prefix")
+        source_prefix = self.source.prefix.strip("/")
+        if source_prefix and staging.startswith(f"{source_prefix}/"):
+            raise ValueError(
+                f"staging_prefix ('{self.staging_prefix}') must not live under "
+                f"source.prefix ('{self.source.prefix}') — the job would re-scan its "
+                "own extracted output."
+            )
 
         # Validate Data Catalog configuration
         if self.enable_catalog:
