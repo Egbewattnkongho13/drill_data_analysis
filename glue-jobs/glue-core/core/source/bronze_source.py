@@ -5,6 +5,7 @@ import zipfile
 from typing import Any, Iterator, Tuple
 
 import boto3
+from botocore.exceptions import ClientError
 
 from .base.source import Source
 
@@ -145,6 +146,15 @@ class BronzeSource(Source):
                     logger.debug(f"Extracted {filepath} ({len(file_bytes)} bytes)")
                     yield (filepath, file_bytes)
 
+        except ClientError as e:
+            # download_file surfaces a missing key as a bare 'HeadObject 404 Not
+            # Found' that never names the object. Say which one.
+            if e.response.get("Error", {}).get("Code") in ("404", "NoSuchKey"):
+                raise FileNotFoundError(
+                    f"No such object in the Bronze layer: {s3_path}"
+                ) from e
+            logger.error(f"Error loading archive from Bronze layer at {s3_path}: {e}")
+            raise
         except Exception as e:
             logger.error(f"Error loading archive from Bronze layer at {s3_path}: {e}")
             raise
