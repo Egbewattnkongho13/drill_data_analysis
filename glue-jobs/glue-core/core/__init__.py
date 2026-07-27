@@ -16,7 +16,7 @@ from .config import (
     load_config,
 )
 from .handlers.data import DataSource
-from .job import GlueJob
+from .job import GlueJob, configure_logging
 from .sinks.base.sink import Sink
 from .sinks.local_sink import LocalSink
 from .sinks.s3_sink import S3Sink
@@ -35,6 +35,7 @@ __all__ = [
     "WebSourceConfig",
     "load_config",
     "GlueJob",
+    "configure_logging",
     "DataSource",
     "Sink",
     "LocalSink",
