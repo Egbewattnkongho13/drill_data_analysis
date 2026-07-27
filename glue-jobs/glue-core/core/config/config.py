@@ -8,7 +8,7 @@ subclass by composing these building blocks and adding job-specific fields.
 
 import logging
 import os
-from typing import Annotated, Dict, List, Literal, Type, TypeVar, Union
+from typing import Annotated, Dict, List, Literal, Optional, Type, TypeVar, Union
 
 import boto3
 from botocore.exceptions import ClientError, EndpointConnectionError, NoCredentialsError
@@ -166,12 +166,22 @@ def load_config(config_cls: Type[T], config_path: str) -> T:
         1. Load config_path (YAML) via OmegaConf.
         2. Validate with Pydantic → return typed config.
 
+    The YAML fallback is only for *unreachable* SSM. Once SSM answers, it is
+    authoritative: an incomplete or invalid result raises rather than falling
+    back, because in Glue the YAML is not deployed and the fallback would only
+    mask the real error behind a FileNotFoundError.
+
     Args:
         config_cls: A BaseJobConfig subclass with ssm_param_map / inject_secrets / validate.
         config_path: Path to the YAML fallback config file (used in local dev only).
 
     Returns:
         A validated instance of config_cls.
+
+    Raises:
+        ValidationError: SSM was reachable but the config it produced is invalid.
+        ValueError: SSM was reachable but pre_validate() rejected the config.
+        FileNotFoundError: SSM was unreachable and no local YAML exists.
     """
     env = os.environ.get("ENVIRONMENT", "dev")
     region = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
@@ -179,41 +189,63 @@ def load_config(config_cls: Type[T], config_path: str) -> T:
     param_map = config_cls.ssm_param_map(env)
 
     # --- Cloud path: SSM first ---
+    #
+    # Reaching SSM and interpreting what it returned are two different failures
+    # and must be handled differently:
+    #
+    #   * Cannot reach SSM (no credentials, no endpoint, access denied) is an
+    #     environment problem -> fall back to YAML, which is what makes local
+    #     and Docker runs work without AWS.
+    #   * SSM answered but the config it produced is incomplete or invalid is a
+    #     configuration problem -> raise. Falling back here would replace the
+    #     real error with 'Config file not found', because dev.yml is gitignored
+    #     and never deployed to Glue.
+    fetched: Optional[Dict[str, str]] = None
     if param_map:
         try:
             boto3.client("sts", region_name=region).get_caller_identity()
             logger.info("AWS credentials found. Loading config from SSM Parameter Store.")
-
             fetched = _fetch_ssm_params(param_map, region)
-
-            # Inject secrets (credentials etc.) as environment variables
-            config_cls.inject_secrets(fetched)
-
-            # Build OmegaConf dict from dotted SSM keys (skipping secret keys)
-            conf = OmegaConf.create({"environment": env})
-            for dotted_key, value in fetched.items():
-                if not dotted_key.startswith("_"):
-                    OmegaConf.update(conf, dotted_key, value, merge=True)
-                    logger.info(f"Config loaded from SSM: {dotted_key} → {value}")
-            config = config_cls(**OmegaConf.to_container(conf, resolve=True))
-            config.pre_validate()
-            logger.info(f"Config loaded and validated from SSM for {config_cls.__name__}.")
-            return config
-
         except NoCredentialsError:
             logger.error("NO AWS CREDENTIALS FOUND - Glue role missing sts:GetCallerIdentity permission. Falling back to local YAML config.")
         except EndpointConnectionError as e:
             logger.error(f"CANNOT CONNECT TO SSM ENDPOINT: {e} - Check VPC/network configuration. Falling back to local YAML config.")
         except ClientError as e:
             error_code = e.response['Error']['Code']
-            if error_code == 'ParameterNotFound':
-                logger.error(f"SSM PARAMETER NOT FOUND: {e} - Check parameter names and paths exist in Parameter Store. Falling back to local YAML config.")
-            elif error_code == 'AccessDenied':
+            if error_code == 'AccessDenied':
                 logger.error(f"SSM ACCESS DENIED: {e} - Check GetParameter permissions on specific paths in Glue role policy. Falling back to local YAML config.")
             else:
                 logger.error(f"SSM CLIENT ERROR [{error_code}]: {e} - Falling back to local YAML config.")
         except Exception as e:
-            logger.error(f"UNEXPECTED ERROR during SSM config loading: {e} - Falling back to local YAML config.")
+            logger.error(f"UNEXPECTED ERROR reaching SSM: {e} - Falling back to local YAML config.")
+
+    if fetched is not None:
+        # SSM is reachable, so it is the authoritative source from here on.
+        # Report which mapped parameters were absent before validating, so a
+        # ValidationError below can be traced back to a specific SSM path.
+        absent = [key for key in param_map if key not in fetched]
+        if absent:
+            logger.error(
+                "SSM parameters not found: "
+                + ", ".join(f"{key} ({param_map[key]})" for key in absent)
+            )
+
+        # Inject secrets (credentials etc.) as environment variables
+        config_cls.inject_secrets(fetched)
+
+        # Build OmegaConf dict from dotted SSM keys (skipping secret keys)
+        conf = OmegaConf.create({"environment": env})
+        for dotted_key, value in fetched.items():
+            if not dotted_key.startswith("_"):
+                OmegaConf.update(conf, dotted_key, value, merge=True)
+                logger.info(f"Config loaded from SSM: {dotted_key} → {value}")
+
+        # Deliberately not wrapped: a ValidationError or a pre_validate()
+        # ValueError here is the real failure and must surface as-is.
+        config = config_cls(**OmegaConf.to_container(conf, resolve=True))
+        config.pre_validate()
+        logger.info(f"Config loaded and validated from SSM for {config_cls.__name__}.")
+        return config
 
     # --- Local path: YAML fallback ---
     logger.info(f"Loading config from YAML: {config_path}")
