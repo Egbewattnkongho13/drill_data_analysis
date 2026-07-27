@@ -54,6 +54,12 @@ resource "aws_ssm_parameter" "bronze_key" {
   type  = "String"
 }
 
+resource "aws_ssm_parameter" "bronze_staging_prefix" {
+  name  = "/drill-data-analysis/dev/bronze/staging_prefix"
+  value = var.bronze_staging_prefix
+  type  = "String"
+}
+
 resource "aws_ssm_parameter" "silver_sink_type" {
   name  = "/drill-data-analysis/dev/silver/sink_type"
   value = var.silver_sink_type

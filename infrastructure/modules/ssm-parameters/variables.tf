@@ -81,6 +81,12 @@ variable "bronze_key" {
   default     = "raw/dev/glue_ingestion/3w-dataset.zip"
 }
 
+variable "bronze_staging_prefix" {
+  description = "Prefix in the bronze bucket where silver-transform unzips archives before Spark reads them. Must not sit under bronze_prefix."
+  type        = string
+  default     = "_unzipped/dev/3w_dataset"
+}
+
 # Silver layer configuration
 variable "silver_sink_type" {
   description = "Type of silver sink. Valid values are 's3' or 'local'."
