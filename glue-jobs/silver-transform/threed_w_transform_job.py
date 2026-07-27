@@ -139,9 +139,12 @@ class SilverTransformJob(GlueJob):
             destination = self.handler.staging_key(
                 entry_path, self.config.staging_prefix
             )
+            # Re-encode timestamps to microseconds; Spark cannot read the
+            # nanosecond timestamps pandas wrote into these files.
+            conformed = self.handler.conform_parquet_bytes(entry_bytes)
             # S3Sink.save() is a no-op when the object already exists, which
             # makes re-running the job after a failure cheap.
-            self.staging_sink.save(entry_bytes, destination)
+            self.staging_sink.save(conformed, destination)
             staged += 1
 
             if staged % 500 == 0:

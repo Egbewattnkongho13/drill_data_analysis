@@ -9,6 +9,9 @@ packages = [{ include = "transformation" }]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
 glue-core = { path = "../glue-core", develop = true }
+# Used at staging time to re-encode the 3W files' nanosecond timestamps, which
+# Spark cannot read. Also present in the Glue 4.0 runtime.
+pyarrow = "^18.1.0"
 py4j = "^0.10.9"  # Required by PySpark in AWS Glue runtime
 
 [tool.poetry.group.dev.dependencies]

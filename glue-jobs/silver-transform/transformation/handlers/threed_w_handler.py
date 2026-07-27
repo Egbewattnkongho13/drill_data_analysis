@@ -17,10 +17,12 @@ Nothing here loads the dataset into a single pandas DataFrame — Spark reads th
 staged Parquet files in parallel.
 """
 
+import io
 import logging
 import posixpath
 from typing import List, Optional
 
+import pyarrow.parquet as pq
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.types import LongType
@@ -108,6 +110,33 @@ class ThreedWDataHandler:
         label = cls.folder_class(normalised)
         partition = HIVE_NULL_PARTITION if label is None else str(label)
         return f"{staging_prefix.rstrip('/')}/folder_class={partition}/{filename}"
+
+    @staticmethod
+    def conform_parquet_bytes(data: bytes) -> bytes:
+        """Re-encode a 3W Parquet file with microsecond timestamps.
+
+        The files are written by pandas, whose datetime64[ns] becomes Parquet
+        TIMESTAMP(NANOS). Spark cannot read that physical type and fails the
+        whole read with:
+
+            Illegal Parquet type: INT64 (TIMESTAMP(NANOS,false))
+
+        Coercing to microseconds here means the staged data is readable by any
+        engine, rather than depending on spark.sql.legacy.parquet.nanosAsLong,
+        which only exists from Spark 3.3.2 onward. Truncation is nanoseconds to
+        microseconds on sensor readings sampled per second, so it loses nothing
+        real.
+        """
+        table = pq.read_table(io.BytesIO(data))
+        buffer = io.BytesIO()
+        pq.write_table(
+            table,
+            buffer,
+            coerce_timestamps="us",
+            allow_truncated_timestamps=True,
+            compression="snappy",
+        )
+        return buffer.getvalue()
 
     # ------------------------------------------------------------------
     # Stage 2: Spark transformation
