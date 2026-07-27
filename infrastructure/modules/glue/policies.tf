@@ -43,6 +43,34 @@ data "aws_iam_policy_document" "glue_job_policy_doc" {
     ]
   }
 
+  # S3 permissions for the datalake silver bucket. Only emitted for jobs that
+  # write to Silver - silver_bucket_name is "" for the ingestion job, and an
+  # empty name would build the invalid ARN 'arn:aws:s3:::/*'.
+  dynamic "statement" {
+    for_each = var.silver_bucket_name != "" ? [1] : []
+    content {
+      effect = "Allow"
+      actions = [
+        "s3:PutObject",
+        "s3:GetObject",
+        # Spark's write mode("overwrite") clears the destination first.
+        "s3:DeleteObject",
+        "s3:AbortMultipartUpload",
+        "s3:ListMultipartUploadParts",
+      ]
+      resources = ["arn:aws:s3:::${var.silver_bucket_name}/*"]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.silver_bucket_name != "" ? [1] : []
+    content {
+      effect    = "Allow"
+      actions   = ["s3:ListBucket"]
+      resources = ["arn:aws:s3:::${var.silver_bucket_name}"]
+    }
+  }
+
   statement {
     effect = "Allow"
     actions = [
