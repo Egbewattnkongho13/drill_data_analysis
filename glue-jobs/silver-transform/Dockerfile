@@ -22,9 +22,10 @@ WORKDIR /app
 COPY glue-jobs/glue-core /app/glue-jobs/glue-core
 
 # Copy silver-transform files
-COPY glue-jobs/silver-transform/ingestion /app/glue-jobs/silver-transform/ingestion
+COPY glue-jobs/silver-transform/transformation /app/glue-jobs/silver-transform/transformation
 COPY glue-jobs/silver-transform/threed_w_transform_job.py /app/glue-jobs/silver-transform/threed_w_transform_job.py
 COPY glue-jobs/silver-transform/pyproject.toml /app/glue-jobs/silver-transform/pyproject.toml
+COPY glue-jobs/silver-transform/poetry.lock /app/glue-jobs/silver-transform/poetry.lock
 COPY glue-jobs/silver-transform/README.md /app/glue-jobs/silver-transform/README.md
 
 # Copy the build script and ensure it has Unix line endings and is executable
@@ -55,6 +56,9 @@ COPY --from=base /app/glue-jobs/silver-transform/threed_w_transform_job.py /app/
 COPY --from=base /app/glue-jobs/silver-transform/dist/ /app/glue-jobs/silver-transform/dist/
 # Copy glue-core source for path dependency resolution
 COPY --from=base /app/glue-jobs/glue-core /app/glue-jobs/glue-core
+# Copy config files for local development only. dev.yml is gitignored and is
+# never shipped to Glue - in cloud the config is resolved from SSM instead.
+COPY --from=base /app/glue-jobs/silver-transform/transformation/envs /app/glue-jobs/silver-transform/transformation/envs
 
 # Install both wheel packages (glue-core first, then silver-transform)
 RUN python3 -m pip install /app/glue-jobs/silver-transform/dist/glue_core-*.whl && \
