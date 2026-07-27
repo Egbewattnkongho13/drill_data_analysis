@@ -28,7 +28,9 @@ source:
   bucket_name: "oye-dl-bronze"
 
   # Option 1: Specify a specific file key (recommended)
-  key: "raw/dev/glue_ingestion/3w-dataset.zip"
+  # Ingestion names the archive from the Kaggle slug with '/' replaced by '_',
+  # so 'afrniomelo/3w-dataset' lands as 'afrniomelo_3w-dataset.zip'.
+  key: "raw/dev/glue_ingestion/afrniomelo_3w-dataset.zip"
 
   # Option 2: Or specify a prefix — every *.zip beneath it is processed
   # prefix: "raw/dev/glue_ingestion/"

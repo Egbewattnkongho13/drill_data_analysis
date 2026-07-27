@@ -76,9 +76,11 @@ variable "bronze_prefix" {
 }
 
 variable "bronze_key" {
-  description = "Specific S3 key for bronze source file (e.g., 'raw/dev/glue_ingestion/3w-dataset.zip'). Optional - use either key or prefix."
+  # Ingestion names the archive from the Kaggle slug with '/' replaced by '_',
+  # so 'afrniomelo/3w-dataset' lands as 'afrniomelo_3w-dataset.zip'.
+  description = "Specific S3 key for bronze source file (e.g., 'raw/dev/glue_ingestion/afrniomelo_3w-dataset.zip'). Optional - use either key or prefix."
   type        = string
-  default     = "raw/dev/glue_ingestion/3w-dataset.zip"
+  default     = "raw/dev/glue_ingestion/afrniomelo_3w-dataset.zip"
 }
 
 variable "bronze_staging_prefix" {

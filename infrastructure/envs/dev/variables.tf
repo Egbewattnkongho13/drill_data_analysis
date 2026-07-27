@@ -138,9 +138,12 @@ variable "bronze_prefix" {
 }
 
 variable "bronze_key" {
+  # The ingestion job names the archive after the Kaggle slug with '/' replaced
+  # by '_' (see kaggle_datahandler.download), so 'afrniomelo/3w-dataset'
+  # lands as 'afrniomelo_3w-dataset.zip'. The owner prefix is part of the name.
   description = "Specific S3 key for bronze source file. Optional - use either key or prefix."
   type        = string
-  default     = "raw/dev/glue_ingestion/3w-dataset.zip"
+  default     = "raw/dev/glue_ingestion/afrniomelo_3w-dataset.zip"
 }
 
 variable "silver_sink_type" {
