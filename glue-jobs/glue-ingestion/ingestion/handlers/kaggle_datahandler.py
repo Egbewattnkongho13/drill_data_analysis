@@ -43,7 +43,7 @@ class KaggleDataHandler(DataSource):
         """
         self.urls = urls
         self._setup_kaggle_credentials(username, api_key)
-        from kaggle.api.kaggle_api_extended import KaggleApi
+        from kaggle.api.kaggle_api_extended import KaggleApi # type: ignore
 
         self.api = KaggleApi()
         self.api.authenticate()

@@ -10,7 +10,7 @@ from awsglue.context import GlueContext  # type: ignore
 from awsglue.utils import getResolvedOptions  # type: ignore
 from pyspark.context import SparkContext # type: ignore
 
-from core import GlueJob, LocalSink, S3Sink, load_config
+from core import GlueJob, LocalSink, S3Sink, Sink, load_config
 from ingestion.envs.config import IngestionJobConfig
 from ingestion.handlers import KaggleDataHandler
 
