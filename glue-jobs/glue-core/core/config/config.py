@@ -201,23 +201,28 @@ def load_config(config_cls: Type[T], config_path: str) -> T:
     #     real error with 'Config file not found', because dev.yml is gitignored
     #     and never deployed to Glue.
     fetched: Optional[Dict[str, str]] = None
+    ssm_error: Optional[BaseException] = None
+    ssm_reason: str = ""
     if param_map:
         try:
             boto3.client("sts", region_name=region).get_caller_identity()
             logger.info("AWS credentials found. Loading config from SSM Parameter Store.")
             fetched = _fetch_ssm_params(param_map, region)
-        except NoCredentialsError:
-            logger.error("NO AWS CREDENTIALS FOUND - Glue role missing sts:GetCallerIdentity permission. Falling back to local YAML config.")
+        except NoCredentialsError as e:
+            ssm_error, ssm_reason = e, "NO AWS CREDENTIALS FOUND - Glue role missing sts:GetCallerIdentity permission."
         except EndpointConnectionError as e:
-            logger.error(f"CANNOT CONNECT TO SSM ENDPOINT: {e} - Check VPC/network configuration. Falling back to local YAML config.")
+            ssm_error, ssm_reason = e, f"CANNOT CONNECT TO SSM ENDPOINT: {e} - Check VPC/network configuration."
         except ClientError as e:
             error_code = e.response['Error']['Code']
             if error_code == 'AccessDenied':
-                logger.error(f"SSM ACCESS DENIED: {e} - Check GetParameter permissions on specific paths in Glue role policy. Falling back to local YAML config.")
+                ssm_error, ssm_reason = e, f"SSM ACCESS DENIED: {e} - Check GetParameter permissions on specific paths in Glue role policy."
             else:
-                logger.error(f"SSM CLIENT ERROR [{error_code}]: {e} - Falling back to local YAML config.")
+                ssm_error, ssm_reason = e, f"SSM CLIENT ERROR [{error_code}]: {e}"
         except Exception as e:
-            logger.error(f"UNEXPECTED ERROR reaching SSM: {e} - Falling back to local YAML config.")
+            ssm_error, ssm_reason = e, f"UNEXPECTED ERROR reaching SSM: {type(e).__name__}: {e}"
+
+        if ssm_error is not None:
+            logger.error(f"{ssm_reason} Falling back to local YAML config.")
 
     if fetched is not None:
         # SSM is reachable, so it is the authoritative source from here on.
@@ -250,6 +255,16 @@ def load_config(config_cls: Type[T], config_path: str) -> T:
     # --- Local path: YAML fallback ---
     logger.info(f"Loading config from YAML: {config_path}")
     if not os.path.exists(config_path):
+        if ssm_error is not None:
+            # The YAML is absent by design in Glue, so 'file not found' is not
+            # the real failure - SSM is. Put the SSM reason in the traceback
+            # rather than leaving it in a log line that is easy to miss.
+            raise RuntimeError(
+                f"Could not load config for {config_cls.__name__}. "
+                f"SSM was tried first and failed -> {ssm_reason} "
+                f"There is no local YAML fallback at {config_path}, which is "
+                f"expected in Glue. Fix the SSM failure above."
+            ) from ssm_error
         raise FileNotFoundError(f"Config file not found: {config_path}")
 
     conf = OmegaConf.load(config_path)
