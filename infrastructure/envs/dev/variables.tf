@@ -83,15 +83,6 @@ variable "sink_type" {
   }
 }
 
-variable "sink_bucket" {
-  description = "The name of the S3 bucket to use as the sink."
-  type        = string
-
-  validation {
-    condition     = can(regex("^[a-z0-9.-]{3,63}$", var.sink_bucket))
-    error_message = "The sink_bucket name must be a valid S3 bucket name."
-  }
-}
 
 variable "kaggle_data_source_urls" {
   description = "A comma-separated list of Kaggle dataset URLs to download."
@@ -110,5 +101,69 @@ variable "crawler_data_source_urls" {
   validation {
     condition     = var.crawler_data_source_urls == "" || alltrue([for url in split(",", var.crawler_data_source_urls) : can(regex("^https://.*", trimspace(url)))])
     error_message = "All crawler_data_source_urls must be valid URLs."
+  }
+}
+
+variable "kaggle_destination" {
+  description = "Destination path in bronze bucket for Kaggle ingestion output."
+  type        = string
+  default     = "raw/dev/glue_ingestion/"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9/_-]+/$", var.kaggle_destination))
+    error_message = "The kaggle_destination must be a valid S3 prefix (no leading slash, must end with /)."
+  }
+}
+
+variable "bronze_type" {
+  description = "Type of bronze source."
+  type        = string
+  default     = "s3"
+
+  validation {
+    condition     = var.bronze_type == "s3"
+    error_message = "Currently only 's3' is supported for bronze_type."
+  }
+}
+
+variable "bronze_prefix" {
+  description = "Prefix path in bronze bucket to read from."
+  type        = string
+  default     = "raw/dev/glue_ingestion/"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9/_-]+/$", var.bronze_prefix))
+    error_message = "The bronze_prefix must be a valid S3 prefix (no leading slash, must end with /)."
+  }
+}
+
+variable "bronze_key" {
+  # The ingestion job names the archive after the Kaggle slug with '/' replaced
+  # by '_' (see kaggle_datahandler.download), so 'afrniomelo/3w-dataset'
+  # lands as 'afrniomelo_3w-dataset.zip'. The owner prefix is part of the name.
+  description = "Specific S3 key for bronze source file. Optional - use either key or prefix."
+  type        = string
+  default     = "raw/dev/glue_ingestion/afrniomelo_3w-dataset.zip"
+}
+
+variable "silver_sink_type" {
+  description = "Type of silver sink."
+  type        = string
+  default     = "s3"
+
+  validation {
+    condition     = contains(["s3", "local"], var.silver_sink_type)
+    error_message = "The silver_sink_type must be either 's3' or 'local'."
+  }
+}
+
+variable "silver_destination" {
+  description = "Destination path in silver bucket."
+  type        = string
+  default     = "silver/dev/3w_dataset/"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9/_-]+/$", var.silver_destination))
+    error_message = "The silver_destination must be a valid S3 prefix (no leading slash, must end with /)."
   }
 }

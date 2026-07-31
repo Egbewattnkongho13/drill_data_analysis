@@ -9,18 +9,25 @@ resource "aws_glue_job" "this" {
   worker_type       = var.glue_job_worker_type
   number_of_workers = var.glue_job_number_of_workers
 
-  default_arguments = {
+  default_arguments = merge({
     "--job-language"             = "python"
     "--ENVIRONMENT"              = var.environment
-    "--enable-metrics"           = "true"      
+    "--BRONZE_BUCKET"            = var.bronze_bucket_name
+    "--enable-metrics"           = "true"
     "--TempDir"                  = "s3://${aws_s3_bucket.glue_assets.id}/temp/"
     "--enable-glue-datacatalog"  = ""
-    "--extra-py-files"           = "s3://${aws_s3_bucket.glue_assets.id}/${aws_s3_object.glue_job_wheel.key}"
+    "--extra-py-files"           = join(",", [for wheel in aws_s3_object.glue_job_wheels : "s3://${aws_s3_bucket.glue_assets.id}/${wheel.key}"])
     "--additional-python-modules" = "omegaconf==2.3.0,pyyaml==6.0.1,requests==2.28.0,pydantic==2.11.7,kaggle==1.5.12,boto3==1.39.15"
     "--continuous-log-logGroup"  = aws_cloudwatch_log_group.ingestion-lg.name
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-continuous-log-filter"     = "true"
-  }
+  },
+  var.silver_bucket_name != "" ? { "--SILVER_BUCKET" = var.silver_bucket_name } : {},
+  var.catalog_database != "" ? {
+    "--ENABLE_CATALOG"   = "true"
+    "--CATALOG_DATABASE" = var.catalog_database
+    "--CATALOG_TABLE"    = var.catalog_table
+  } : {})
 
   command {
     name            = "glueetl"
@@ -34,6 +41,6 @@ resource "aws_glue_job" "this" {
 
   depends_on = [
     aws_s3_object.glue_job_script,
-    aws_s3_object.glue_job_wheel,
+    aws_s3_object.glue_job_wheels,
   ]
 }

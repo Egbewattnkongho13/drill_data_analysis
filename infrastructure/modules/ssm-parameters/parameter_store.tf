@@ -16,12 +16,6 @@ resource "aws_ssm_parameter" "sink_type" {
   type  = "String"
 }
 
-resource "aws_ssm_parameter" "sink_bucket" {
-  name  = "/drill-data-analysis/dev/sink/bucket_name"
-  value = var.sink_bucket
-  type  = "String"
-}
-
 
 resource "aws_ssm_parameter" "kaggle_data_source_urls" {
   name  = "/drill-data-analysis/dev/kaggle/data_source_urls"
@@ -33,4 +27,47 @@ resource "aws_ssm_parameter" "crawler_data_source_urls" {
   name  = "/drill-data-analysis/dev/crawler/data_source_urls"
   value = var.crawler_data_source_urls
   type  = "StringList"
+}
+
+# Destination paths and types (runtime configs)
+resource "aws_ssm_parameter" "kaggle_destination" {
+  name  = "/drill-data-analysis/dev/kaggle/destination"
+  value = var.kaggle_destination
+  type  = "String"
+}
+
+resource "aws_ssm_parameter" "bronze_type" {
+  name  = "/drill-data-analysis/dev/bronze/type"
+  value = var.bronze_type
+  type  = "String"
+}
+
+resource "aws_ssm_parameter" "bronze_prefix" {
+  name  = "/drill-data-analysis/dev/bronze/prefix"
+  value = var.bronze_prefix
+  type  = "String"
+}
+
+resource "aws_ssm_parameter" "bronze_key" {
+  name  = "/drill-data-analysis/dev/bronze/key"
+  value = var.bronze_key
+  type  = "String"
+}
+
+resource "aws_ssm_parameter" "bronze_staging_prefix" {
+  name  = "/drill-data-analysis/dev/bronze/staging_prefix"
+  value = var.bronze_staging_prefix
+  type  = "String"
+}
+
+resource "aws_ssm_parameter" "silver_sink_type" {
+  name  = "/drill-data-analysis/dev/silver/sink_type"
+  value = var.silver_sink_type
+  type  = "String"
+}
+
+resource "aws_ssm_parameter" "silver_destination" {
+  name  = "/drill-data-analysis/dev/silver/destination"
+  value = var.silver_destination
+  type  = "String"
 }

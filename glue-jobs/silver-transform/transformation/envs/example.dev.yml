@@ -1,0 +1,105 @@
+# Example configuration file for silver-transform job
+# This file demonstrates all available configuration options
+#
+# USAGE:
+#   1. For LOCAL TESTING (Docker): Copy to 'dev.yml' and set sink.type = "local"
+#   2. For CLOUD/AWS: Set sink.type = "s3" and configure bucket_name
+#   3. In production, values are loaded from AWS SSM Parameter Store
+#
+# SECURITY: Never commit dev.yml to git - it may contain sensitive configurations
+
+# Environment identifier - must be one of: dev, qc, prod
+environment: "dev"
+
+# Job name - will be overridden by Glue at runtime
+job_name: "drill-data-silver-transform-job"
+
+# Logging level - DEBUG, INFO, WARNING, ERROR
+logging_level: "INFO"
+
+# Source configuration - where to read Bronze layer data from
+source:
+  # Type of source - currently only "s3" is supported
+  type: "s3"
+
+  # Name of the Bronze S3 bucket
+  # NOTE: In cloud/AWS, this is overridden by --BRONZE_BUCKET job argument (from Terraform)
+  # For local dev, set to match your local bucket name
+  bucket_name: "oye-dl-bronze"
+
+  # Option 1: Specify a specific file key (recommended)
+  # Ingestion names the archive from the Kaggle slug with '/' replaced by '_',
+  # so 'afrniomelo/3w-dataset' lands as 'afrniomelo_3w-dataset.zip'.
+  key: "raw/dev/glue_ingestion/afrniomelo_3w-dataset.zip"
+
+  # Option 2: Or specify a prefix — every *.zip beneath it is processed
+  # prefix: "raw/dev/glue_ingestion/"
+
+# Staging prefix (Bronze bucket) where archives are unzipped before Spark reads
+# them. ZIP is not a splittable format, so the job extracts the archive to S3
+# once and then lets every Spark executor read the Parquet files in parallel.
+# MUST NOT live under source.prefix, or a re-run would re-scan its own output.
+staging_prefix: "_unzipped/dev/3w_dataset"
+
+# Log the row count per (source_type, folder_class, class) triple before writing.
+# Costs an extra pass over the data - useful during bring-up.
+log_label_distribution: false
+
+# Log the count of each QC flag per sensor before writing. Same cost. The counts
+# are deterministic for a given archive, so a change between runs means the
+# input changed - treat it as a data-quality alarm.
+log_qc_summary: false
+
+# Quality-control bounds for the sensor channels.
+#
+# Values failing these rules are set to NULL (valve openings are clamped
+# instead) and the reason is recorded in the matching qc_<sensor> column. No row
+# is ever dropped, so the raw distribution stays reconstructable from Bronze and
+# *what changed* stays readable from Silver alone.
+#
+# These are a defensible starting proposal, not settled physics. The temperature
+# floor especially is a judgement call: T-TPT reaches -33.75 C in the real data,
+# which is implausible for produced fluid but not absurd for a sensor drifting
+# cold. Vary them here rather than in code.
+
+# |v| above this is an instrument error sentinel, not a measurement. P-PDG
+# reaches -1.18e42 and T-PDG -1.71e38 in the real instances; both are error
+# codes. Note these exceed the float32 maximum (3.40e38), so they must be nulled
+# *before* the cast to float or they become -Infinity and poison every
+# aggregate computed over the partition.
+# Note the '+' in the exponent: YAML 1.1 only parses a float when the exponent
+# is signed, so '1.0e10' would load as the *string* "1.0e10".
+qc_sentinel_threshold: 1.0e+10
+
+# Pressure channels (P-*, PT-P), in Pa. Subsea wellhead pressures are tens of
+# MPa; P-TPT reaches 2.94e9 Pa (2,942 MPa) in the raw data.
+qc_pressure_bounds: [0.0, 6.0e+7]
+
+# Temperature channels (T-*), in degrees C.
+qc_temperature_bounds: [0.0, 200.0]
+
+# Valve opening channels (ABER-*), in percent. Bounded by definition, so
+# out-of-range readings are clamped rather than nulled - ABER-CKP ranges
+# -99.99 to 100.4, which reads as calibration offset rather than a dead sensor.
+qc_opening_bounds: [0.0, 100.0]
+
+# Sink configuration - where to write the Silver layer data
+sink:
+  # For LOCAL TESTING (Docker container):
+  # Uncomment these lines to write to local filesystem
+  # type: "local"
+  # path: "/app/data/output/silver_transform"
+
+  # For CLOUD/AWS ENVIRONMENT (recommended for dev.yml in cloud):
+  # Uncomment these lines to write to S3
+  # NOTE: In cloud/AWS, bucket_name is overridden by --SILVER_BUCKET job argument (from Terraform)
+  type: "s3"
+  bucket_name: "oye-dl-silver"
+
+# Destination path within the sink where transformed data will be stored
+destination: "silver/dev/3w_dataset/"
+
+# Notes:
+# - Copy this file to 'dev.yml' and customize for your local environment
+# - Never commit dev.yml to git - it may contain sensitive paths or configurations
+# - In production, these values are loaded from AWS SSM Parameter Store

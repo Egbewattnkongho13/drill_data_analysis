@@ -48,7 +48,29 @@ events/
 
 # Local development configuration
 lambdas/ingestion/ingest/config/dev.yml
+glue-jobs/*/ingestion/envs/dev.yml
+glue-jobs/*/transformation/envs/dev.yml
 
 # SAM template for local testing (IAC is managed by Terraform)
 lambdas/ingestion/template.yaml
 ingestion-bundle-*
+
+# Kaggle credentials (NEVER commit these!)
+kaggle.json
+.kaggle/
+
+# Python build artifacts
+dist/
+build/
+*.egg-info/
+.venv/
+venv/
+
+# Downloaded data
+data/
+*.zip
+*.csv
+*.parquet
+
+# Log files
+*.log

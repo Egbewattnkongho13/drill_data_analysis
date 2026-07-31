@@ -76,3 +76,41 @@ variable "bronze_bucket_name" {
   description = "The name of the bronze S3 bucket for data ingestion."
   type        = string
 }
+
+variable "silver_bucket_name" {
+  description = "The name of the silver S3 bucket for transformed data."
+  type        = string
+  default     = ""
+}
+
+variable "glue_job_dist_path" {
+  description = "The local path to the dist directory containing wheel files for the Glue job."
+  type        = string
+
+  validation {
+    condition     = can(regex(".*dist$", var.glue_job_dist_path))
+    error_message = "The glue_job_dist_path must end with 'dist'."
+  }
+}
+
+variable "catalog_database" {
+  description = "Glue Data Catalog database name (optional). If provided, job will register tables."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.catalog_database == "" || can(regex("^[a-z0-9_]+$", var.catalog_database))
+    error_message = "Catalog database name must contain only lowercase letters, numbers, and underscores."
+  }
+}
+
+variable "catalog_table" {
+  description = "Glue Data Catalog table name (optional). Required if catalog_database is set."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.catalog_table == "" || can(regex("^[a-z0-9_]+$", var.catalog_table))
+    error_message = "Catalog table name must contain only lowercase letters, numbers, and underscores."
+  }
+}
