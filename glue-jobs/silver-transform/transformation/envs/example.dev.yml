@@ -41,9 +41,47 @@ source:
 # MUST NOT live under source.prefix, or a re-run would re-scan its own output.
 staging_prefix: "_unzipped/dev/3w_dataset"
 
-# Log the row count per (folder_class, class) pair before writing.
+# Log the row count per (source_type, folder_class, class) triple before writing.
 # Costs an extra pass over the data - useful during bring-up.
 log_label_distribution: false
+
+# Log the count of each QC flag per sensor before writing. Same cost. The counts
+# are deterministic for a given archive, so a change between runs means the
+# input changed - treat it as a data-quality alarm.
+log_qc_summary: false
+
+# Quality-control bounds for the sensor channels.
+#
+# Values failing these rules are set to NULL (valve openings are clamped
+# instead) and the reason is recorded in the matching qc_<sensor> column. No row
+# is ever dropped, so the raw distribution stays reconstructable from Bronze and
+# *what changed* stays readable from Silver alone.
+#
+# These are a defensible starting proposal, not settled physics. The temperature
+# floor especially is a judgement call: T-TPT reaches -33.75 C in the real data,
+# which is implausible for produced fluid but not absurd for a sensor drifting
+# cold. Vary them here rather than in code.
+
+# |v| above this is an instrument error sentinel, not a measurement. P-PDG
+# reaches -1.18e42 and T-PDG -1.71e38 in the real instances; both are error
+# codes. Note these exceed the float32 maximum (3.40e38), so they must be nulled
+# *before* the cast to float or they become -Infinity and poison every
+# aggregate computed over the partition.
+# Note the '+' in the exponent: YAML 1.1 only parses a float when the exponent
+# is signed, so '1.0e10' would load as the *string* "1.0e10".
+qc_sentinel_threshold: 1.0e+10
+
+# Pressure channels (P-*, PT-P), in Pa. Subsea wellhead pressures are tens of
+# MPa; P-TPT reaches 2.94e9 Pa (2,942 MPa) in the raw data.
+qc_pressure_bounds: [0.0, 6.0e+7]
+
+# Temperature channels (T-*), in degrees C.
+qc_temperature_bounds: [0.0, 200.0]
+
+# Valve opening channels (ABER-*), in percent. Bounded by definition, so
+# out-of-range readings are clamped rather than nulled - ABER-CKP ranges
+# -99.99 to 100.4, which reads as calibration offset rather than a dead sensor.
+qc_opening_bounds: [0.0, 100.0]
 
 # Sink configuration - where to write the Silver layer data
 sink:

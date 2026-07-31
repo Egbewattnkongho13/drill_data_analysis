@@ -6,7 +6,7 @@ The YAML file provides the full config structure and local dev defaults.
 In cloud, SSM parameters are merged on top via OmegaConf to override values.
 """
 
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from core.config.config import BaseJobConfig, S3SourceConfig, SinkConfig
 
@@ -22,9 +22,24 @@ class SilverTransformJobConfig(BaseJobConfig):
     # Bronze bucket: unzipping is decompression, not transformation.
     staging_prefix: str = "_unzipped/dev/3w_dataset"
 
-    # Log the row count per (folder_class, class) pair before writing. Costs an
-    # extra pass over the data; useful while the label semantics are unsettled.
+    # Log the row count per (source_type, folder_class, class) triple before
+    # writing. Costs an extra pass; useful while the label semantics are unsettled.
     log_label_distribution: bool = False
+
+    # Log the count of each QC flag per sensor before writing. Same cost. These
+    # counts are deterministic for a given archive, so a change between runs
+    # means the input changed.
+    log_qc_summary: bool = False
+
+    # QC bounds. Values failing these are set to NULL (or clamped, for valve
+    # openings) and the reason recorded in the matching qc_<sensor> column; no
+    # row is ever dropped. They are a defensible starting proposal rather than
+    # settled physics — the temperature floor in particular is a judgement call —
+    # so they live in config where a reviewer can vary them.
+    qc_sentinel_threshold: float = 1e10  # |v| above this is an instrument error code
+    qc_pressure_bounds: List[float] = [0.0, 6e7]  # Pa
+    qc_temperature_bounds: List[float] = [0.0, 200.0]  # degrees C
+    qc_opening_bounds: List[float] = [0.0, 100.0]  # percent
 
     # Data Catalog configuration
     enable_catalog: bool = False  # Whether to register output in Glue Data Catalog
@@ -69,6 +84,20 @@ class SilverTransformJobConfig(BaseJobConfig):
                 f"staging_prefix ('{self.staging_prefix}') must not live under "
                 f"source.prefix ('{self.source.prefix}') — the job would re-scan its "
                 "own extracted output."
+            )
+
+        # A malformed bound would silently null out a whole sensor, so check the
+        # shape here rather than discovering it in the QC counts.
+        for name in ("qc_pressure_bounds", "qc_temperature_bounds", "qc_opening_bounds"):
+            bounds = getattr(self, name)
+            if len(bounds) != 2 or bounds[0] >= bounds[1]:
+                raise ValueError(
+                    f"{name} must be [low, high] with low < high, got {bounds}"
+                )
+
+        if self.qc_sentinel_threshold <= 0:
+            raise ValueError(
+                f"qc_sentinel_threshold must be positive, got {self.qc_sentinel_threshold}"
             )
 
         # Validate Data Catalog configuration

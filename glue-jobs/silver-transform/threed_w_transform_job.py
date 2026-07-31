@@ -32,7 +32,11 @@ from core import BronzeSource, GlueJob, S3Sink, configure_logging, load_config
 # Import transformation components
 from transformation import SilverTransformJobConfig, ThreedWDataHandler
 
-PARTITION_COLUMN = "folder_class"
+# Partition by source family first: every headline metric in the experiment is
+# computed on real instances only, so "real only" should be a partition prune
+# rather than a full scan. folder_class alone gave 10 badly skewed partitions
+# (class 5 at 402 MB against class 2 at 18 MB).
+PARTITION_COLUMNS = ["source_type", "folder_class"]
 
 
 def local_config_path(env: str) -> str:
@@ -91,8 +95,27 @@ class SilverTransformJob(GlueJob):
             f"s3://{self.config.source.bucket_name}/{self.config.staging_prefix}"
         )
 
-        self.handler = ThreedWDataHandler()
-        self.logger.info("ThreedWDataHandler initialized.")
+        # QC bounds come from config so they can be varied without a code change;
+        # they are an experimental parameter, not settled physics.
+        self.handler = ThreedWDataHandler(
+            sentinel_threshold=self.config.qc_sentinel_threshold,
+            pressure_bounds=tuple(self.config.qc_pressure_bounds),
+            temperature_bounds=tuple(self.config.qc_temperature_bounds),
+            opening_bounds=tuple(self.config.qc_opening_bounds),
+        )
+        self.logger.info(
+            f"ThreedWDataHandler initialized with QC bounds: "
+            f"sentinel |v| > {self.config.qc_sentinel_threshold}, "
+            f"pressure {self.config.qc_pressure_bounds} Pa, "
+            f"temperature {self.config.qc_temperature_bounds} C, "
+            f"opening {self.config.qc_opening_bounds} %"
+        )
+
+        # Re-running with a different partition layout must not leave the old
+        # one behind, but a partial re-run must not wipe partitions it did not
+        # produce. Dynamic overwrite replaces only the partitions actually
+        # written; the default (static) deletes the entire output path first.
+        self.spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
 
     # ------------------------------------------------------------------
     # Stage 1 — resolve and unzip archives
@@ -139,9 +162,12 @@ class SilverTransformJob(GlueJob):
             destination = self.handler.staging_key(
                 entry_path, self.config.staging_prefix
             )
-            # Re-encode timestamps to microseconds; Spark cannot read the
-            # nanosecond timestamps pandas wrote into these files.
-            conformed = self.handler.conform_parquet_bytes(entry_bytes)
+            # Validate the file's source family and sensor count, then re-encode
+            # timestamps to microseconds — Spark cannot read the nanosecond
+            # timestamps pandas wrote into these files. Both checks need the file
+            # name, which Spark no longer has once the files are staged, and an
+            # unrecognised well ID raises here rather than after 2,228 uploads.
+            conformed = self.handler.conform_entry(entry_path, entry_bytes)
             # S3Sink.save() is a no-op when the object already exists, which
             # makes re-running the job after a failure cheap.
             self.staging_sink.save(conformed, destination)
@@ -191,7 +217,7 @@ class SilverTransformJob(GlueJob):
         return f"{self.config.sink.path}/{self.config.destination}"
 
     def _write(self, df: DataFrame, output_path: str) -> None:
-        writer = df.write.mode("overwrite").partitionBy(PARTITION_COLUMN)
+        writer = df.write.mode("overwrite").partitionBy(*PARTITION_COLUMNS)
 
         if (
             self.config.enable_catalog
@@ -235,16 +261,30 @@ class SilverTransformJob(GlueJob):
         # STAGE 3: conform and write
         silver_df = self.handler.transform(raw_df)
 
+        # Each of these collects, which is an action: without caching, the whole
+        # staged read and transform re-runs from S3 for every one of them and
+        # again for the write.
+        diagnostics = self.config.log_label_distribution or self.config.log_qc_summary
+        if diagnostics:
+            silver_df = silver_df.cache()
+
         if self.config.log_label_distribution:
-            # An extra pass over the data — informative during bring-up, but
-            # worth disabling once the label semantics are settled.
             for row in self.handler.label_distribution(silver_df):
                 self.logger.info(f"Label distribution: {row}")
+
+        if self.config.log_qc_summary:
+            # Rejections per sensor per run. These counts should be identical
+            # across runs of the same archive; a change is a data-quality alarm.
+            for row in self.handler.qc_summary(silver_df):
+                self.logger.info(f"QC summary: {row}")
 
         output_path = self._output_path()
         self.logger.info(f"Writing partitioned Parquet to silver layer at {output_path}")
         self._write(silver_df, output_path)
         self.logger.info("Silver transform complete.")
+
+        if diagnostics:
+            silver_df.unpersist()
 
 
 if __name__ == "__main__":
